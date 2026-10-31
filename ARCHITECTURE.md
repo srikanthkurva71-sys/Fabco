@@ -352,3 +352,262 @@ This is a networked visual-play prototype, not yet production multiplayer:
 - Internet connection and a correctly configured Supabase project are required. The repository's static GitHub Pages hosting alone does not provide a multiplayer server.
 
 The next production step is a trusted authoritative match service that validates movement, interactions, match state, scoring, player limits, and results. The current Broadcast prototype is suitable only for early friend-room experiments after configuration and testing.
+
+
+---
+
+# Engineering Architecture Specification — Baseline 1.1
+
+This specification converts the product blueprint into implementable system contracts. It freezes the architectural direction while leaving measured balance values and provider-specific deployment settings configurable. Planned systems are not represented as already implemented.
+
+## 18. Architecture decisions and scope boundaries
+
+### 18.1 Platform and technology decisions
+- Primary launch client: responsive browser game, with PWA installation where hosting headers and browser support permit.
+- Primary input: Android touch; secondary input: desktop keyboard and mouse.
+- Initial rendering: lightweight 2D top-down world. A 3D rewrite is a separate future phase, not a requirement hidden inside the first release.
+- Static distribution: GitHub Pages can host the prototype and static assets. Production should use a controlled domain, HTTPS, versioned assets and a deployment pipeline.
+- Simulation: fixed-step game simulation with rendering decoupled from simulation timing.
+- Client: modular JavaScript ES modules for production. The current single-file prototype may remain temporarily; new systems should be separated by responsibility.
+- Backend: Supabase may provide identity, relational persistence and social/lobby data. A dedicated authoritative game service owns live competitive match state.
+- No privileged backend credential may be shipped to a browser.
+
+### 18.2 First-MVP non-goals
+The first MVP does not promise a 3D world, enterable building interiors, a large global matchmaking population, voice chat, user-generated maps, real-money purchases, esports-grade anti-cheat, console support or a large-scale persistent world. These require separate engineering, moderation, legal and operational work.
+
+### 18.3 Requirement labels
+MUST means release-blocking; SHOULD means expected unless a documented technical reason prevents it; MAY means optional. A feature is not complete merely because a screen or button exists: its acceptance test must pass.
+
+## 19. Runtime component architecture
+
+### 19.1 Client modules
+1. App Shell: boot, screen routing, loading, error handling and version display.
+2. Input Manager: touch, keyboard, focus, remapping and input normalization.
+3. Renderer: camera, world layers, sprites, effects, HUD and minimap.
+4. World Model: district metadata, roads, landmarks, collision shapes and spawn regions.
+5. Simulation: movement, dash cooldown, collision, pickups, objectives, hazard phases and local practice rivals.
+6. Match Coordinator: lifecycle, countdown, active state, pause policy, completion and results presentation.
+7. Network Adapter: connection lifecycle, room subscription, presence, snapshot interpolation and reconnect.
+8. UI: lobby, profile, settings, inventory, store, party, match HUD and results.
+9. Local Persistence: non-sensitive preferences and explicitly offline-only progress.
+10. Telemetry Adapter: consent-aware diagnostics with personal data minimized.
+11. Audio Manager: sound effects, music, mute and volume.
+12. Asset Manager: versioned loading, caching, fallbacks and integrity metadata.
+
+UI code must not directly mutate authoritative match state. Modules communicate through documented events or narrow interfaces.
+
+### 19.2 Backend services
+Identity; profile; social/friends; cosmetic catalog; wallet ledger; matchmaking; authoritative match server; statistics; ranking/season; moderation/reporting; and operations/monitoring. These may initially be deployed together as a modular backend, but their responsibilities remain separate.
+
+## 20. Simulation and connected-world contracts
+
+### 20.1 Coordinate system
+Use one world-space coordinate system with origin at top-left; positive X points east/right and positive Y south/down. Camera coordinates are presentation-only. Gameplay positions remain in world coordinates. World dimensions and district boundaries are versioned data, not scattered constants. The current 1800 × 1120 dimensions are prototype values, not a final size commitment.
+
+### 20.2 World data
+Each district has a stable ID, display name, bounds or polygon, navigation metadata, landmark IDs, ambient theme, spawn eligibility and accessibility notes. Roads and trails form a graph connecting navigation nodes. Buildings and solid scenery expose collision geometry separately from visual art.
+
+The connected-world invariant is mandatory: districts are adjacent regions of one continuous world, not unrelated selectable maps. Future expansion extends the same world coordinate/navigation model or uses documented seamless partitioning that preserves continuous travel.
+
+### 20.3 Movement contract
+- Normalize directional input so diagonal movement is not faster than cardinal movement.
+- Apply movement using elapsed simulation time, not frame count.
+- Resolve collision before committing final position.
+- Dash has server-defined duration, cooldown and movement envelope.
+- The server rejects impossible speed, teleport distance, invalid cooldown use and out-of-bounds positions.
+- Client prediction may improve responsiveness; server reconciliation corrects divergence.
+- Cosmetics never change collision radius, speed, visibility or competitive capability.
+
+### 20.4 Match state machine
+The authoritative lifecycle is:
+CREATED → WAITING_FOR_PLAYERS → READY_CHECK → COUNTDOWN → ACTIVE → RESULTS_PENDING → COMPLETED.
+
+WAITING_FOR_PLAYERS or READY_CHECK may become CANCELLED on timeout or insufficient players. ACTIVE may enter PAUSED_FOR_RECOVERY only under a defined server policy, then resume or end safely. RESULTS_PENDING becomes DISPUTED if validation fails; unverified competitive rewards must not be issued. Every transition records timestamp, actor/service and reason code.
+
+### 20.5 Objective state
+Every objective has a stable ID, type, activation radius, prerequisites, individual/team ownership, completion state, reward definition and server validation rule. The server is authoritative for completion and rewards. Clients may predict visual feedback but cannot grant rewards.
+
+### 20.6 Safe-zone state
+Each hazard phase is a server-authored record containing phase number, warning start, movement start, end time, safe-region geometry and penalty policy. Warnings must be visible and accessible, allow response time and avoid unavoidable spawn traps. Timing and penalty values are balance configuration, not architectural constants.
+
+## 21. Multiplayer protocol and authority
+
+### 21.1 Transport
+Production live matches use secure WebSocket transport (WSS) with short-lived authenticated sessions. A match server assigns each player to one match and validates state-changing commands. The client sends input intent or bounded commands; it never submits authoritative score, wallet balance, rank, placement or final result.
+
+Supabase Realtime Broadcast and Presence remain a prototype friend-room transport only. They are not the production authority for ranked matches.
+
+### 21.2 Message envelope
+Every message includes protocol version, message type, match ID, sender/session identity, monotonically increasing sequence number and validated payload. Client timestamps may assist diagnostics but are not trusted for competitive decisions. Server messages include server sequence and authoritative tick. Reject unknown protocol versions, malformed or oversized payloads, stale sequences and unauthorized message types.
+
+### 21.3 Client-to-server commands
+- PLAYER_INPUT: bounded directional/action state.
+- USE_INTERACTION: objective or landmark ID; server checks distance, availability and prerequisites.
+- READY_STATE: party/match readiness.
+- CLIENT_PING: latency measurement.
+- LEAVE_MATCH: intentional departure request.
+
+No client command may directly set currency, XP, rank, placement, objective completion or another player's state.
+
+### 21.4 Server-to-client events
+MATCH_STATE; WORLD_SNAPSHOT; PLAYER_JOINED; PLAYER_LEFT; OBJECTIVE_UPDATED; HAZARD_PHASE; PLAYER_STATUS; MATCH_RESULT; and ERROR. Errors expose safe codes and recovery hints, not secrets or internal stack traces.
+
+### 21.5 Timing and interpolation
+Use a fixed authoritative simulation tick. An initial engineering target may be 20 ticks per second for a lightweight 2D MVP, subject to profiling. Clients render at device frame rate and interpolate remote snapshots. Local input prediction is reconciled against authoritative snapshots. Tick rate, snapshot frequency and interpolation buffer are configurable and load-tested.
+
+### 21.6 Disconnect and reconnect
+A disconnected player retains a temporary reservation for a configurable grace period. Reconnection requires a valid session and match authorization, then receives a fresh authoritative snapshot. Expired reservations follow a documented abandonment policy. Reconnect must not duplicate rewards or create two active sessions for one player in a match.
+
+### 21.7 Current prototype boundary
+The existing Supabase room exchanges player presence and position broadcasts. It does not synchronize authoritative match simulation/results. A successful two-device test proves only that room transport and remote rendering work.
+
+## 22. Persistence and database design
+
+### 22.1 General rules
+Use UUID internal primary keys and a separate non-sequential public player ID. Store timestamps in UTC. Define foreign keys, uniqueness constraints and indexes. Check database migrations into version control. Apply row-level security to every user-owned table. Clients cannot write authoritative match outcomes, coin ledger entries, inventory ownership, XP awards or ranks. Security-sensitive changes require immutable audit records.
+
+### 22.2 Core entities and constraints
+- profiles: auth user ID (unique FK), public player ID (unique), display name, avatar key, privacy settings, timestamps.
+- player_settings: user ID (unique FK), control, accessibility and audio preferences.
+- friendships: requester, recipient, status and timestamps; unique unordered pair; self-friendship prohibited.
+- blocks: blocker, blocked and timestamp; unique pair; self-block prohibited.
+- parties: leader, mode, status, hashed invite token, expiry and creation time.
+- party_members: party, user, role, ready state and joined time; unique party/user; trusted service enforces capacity.
+- matches: ID, mode, status, world/ruleset versions, start/end times and validation status.
+- match_players: match, user, team, placement, survival duration, verified outplays, objective score and disconnect state; unique match/user.
+- match_events: match, server sequence, event type, payload version, payload and timestamp; append-only.
+- player_statistics: user, mode, season and rebuildable aggregate counters.
+- rank_seasons: season dates and versioned configuration.
+- player_ranks: user, mode, season, rating, tier and last ranked match; unique user/mode/season.
+- rank_history: user, match or adjustment, old/new rating, reason code and timestamp.
+- cosmetics: item ID, slot, rarity, catalog price, availability window, asset key and enabled state.
+- player_inventory: user, cosmetic, acquisition source and timestamp; uniqueness prevents unintended duplicates.
+- player_loadouts: user, selected character, cosmetic slot mapping and update time.
+- wallets: user, cached balance and version; balance is reconcilable from ledger.
+- coin_ledger: ID, user, signed amount, reason, source reference, idempotency key and timestamp; append-only with unique per-user idempotency key.
+- missions and mission_progress: versioned objective/reward definitions and per-player progress.
+- achievements and player_achievements: versioned trigger definitions and unique unlock records.
+- reports: reporter, target, category, match/evidence reference, review state and timestamp.
+- moderation_actions: target, moderator/service, action, reason, duration and audit metadata.
+
+### 22.3 Privacy and retention
+Collect only data needed to operate the game, protect players and resolve support cases. Publish a plain-language privacy notice before account launch. Define retention and deletion workflows for account data, reports and operational logs. Never expose email, auth IDs, IP addresses or private invite tokens in public profiles or leaderboards. Provide profile visibility controls and account deletion/export workflows appropriate to the launch jurisdiction.
+
+### 22.4 Transactions and idempotency
+Reward issuance, cosmetic purchase, match completion and rank updates must be idempotent. Repeated requests with the same key return the original outcome and cannot issue duplicate currency or XP. Wallet ledger insertion and cached balance update occur atomically. Purchases verify catalog availability, price and balance server-side before recording ownership and debit.
+
+## 23. Versioned API contracts
+
+Production APIs are versioned under /api/v1. The framework and hosting provider may be selected during deployment, but these responsibilities remain stable.
+
+### 23.1 Identity and profile
+POST /auth/session; GET /me; PATCH /me/settings; GET /players/{publicPlayerId}. Public profile responses obey the target player's privacy settings.
+
+### 23.2 Social and parties
+POST /friends/requests; POST /friends/requests/{id}/accept; DELETE /friends/{id}; POST/DELETE /blocks/{publicPlayerId}; POST /parties; POST /parties/{id}/join; POST /parties/{id}/ready; POST /parties/{id}/invites. Invite tokens are random, short-lived, revocable and stored hashed. Rate-limit creation and redemption.
+
+### 23.3 Matchmaking and matches
+POST /matchmaking/queue; DELETE /matchmaking/queue; GET /matches/{id}; POST /matches/{id}/reconnect. Live gameplay uses the authenticated WSS protocol, not repeated REST polling.
+
+### 23.4 Catalog, wallet and progression
+GET /catalog/cosmetics; GET /me/inventory; PUT /me/loadout; GET /me/wallet; GET /me/wallet/ledger; POST /me/purchases; GET /me/statistics; GET /me/rank; GET /leaderboards/{season}/{mode}. Purchase requests contain catalog item ID and idempotency key; the client never submits a trusted price or resulting balance. Clients cannot submit trusted final match results.
+
+### 23.5 Error contract
+Errors contain a stable machine-readable code, safe user-facing message, retryable flag and correlation ID. Never return stack traces, secrets, database details or another player's private information.
+
+## 24. Matchmaking, parties and fairness
+- Squad capacity is four; Solo capacity is one.
+- Party leader controls queue submission and disbanding; members may leave independently.
+- All party members pass mode, version, sanction and connectivity checks.
+- Matchmaking considers mode, region/latency, party composition, rating band and wait time. Rating bands may widen gradually within configured limits.
+- If population is insufficient, show queue state and allow cancellation; do not promise a match.
+- The match server validates roster before countdown.
+- Ranked and casual queues use separate rating and reward policies.
+- New accounts may complete placement matches before receiving a visible rank.
+- Publish rating principles and avoid manipulative streak/loss-protection systems.
+
+## 25. Progression, rewards and rank
+A match is validated before it can issue XP, mission progress, achievements, FAB Coins or rank changes. The reward pipeline is idempotent and records a reason for each grant.
+
+Maintain separate Solo and Squad ratings. Select a documented rating algorithm after simulation and playtesting, such as a Glicko-style or Elo-derived model with placement/performance modifiers. Do not freeze rating thresholds before playtest evidence exists. Promotion, demotion and inactivity rules are versioned season configuration. Training and casual modes do not alter ranked rating. Show rating change and a reason summary after each ranked match.
+
+The initial economy uses earnable virtual FAB Coins only. No real-money top-ups in the MVP. Reward amounts and cosmetic prices are server configuration. No paid stat boosts, stronger abilities, paid rank boosts or randomized paid loot. The ledger is the source of truth; corrections use compensating entries rather than destructive edits.
+
+## 26. Security threat model and controls
+
+Threats include modified clients sending impossible movement/interactions; forged results, rank, XP or coins; replayed purchase/reward requests; room-code guessing and spam; account/session theft; denial-of-service and oversized messages; harassment, impersonation and privacy leakage; and compromised dependencies/assets.
+
+Required controls:
+1. HTTPS/WSS and secure sessions with short-lived access tokens.
+2. Server authorization for every private resource and state-changing operation.
+3. Strict schemas, bounds checks, rate limits and payload-size limits.
+4. Server-authoritative movement envelope, cooldowns, collision, objectives, timer and results.
+5. Idempotency keys and append-only wallet/rank audit records.
+6. RLS tests for allowed and denied access.
+7. Secret scanning and dependency review in CI.
+8. Least-privilege service credentials and rotation after suspected exposure.
+9. Moderation, block, report and support escalation before open social features.
+10. Monitoring for unusual reward rates, impossible movement and repeated failures.
+
+Client-side obfuscation is not anti-cheat. A client-only architecture cannot guarantee competitive integrity.
+
+## 27. Abuse prevention and player safety
+Use public player IDs rather than exposing account email or private identifiers. Nicknames have length limits and server-side normalization/filtering. Provide block, mute and report before unrestricted social interaction. Start with predefined quick messages/emotes; free text and voice chat remain disabled until moderation is operational. Rate-limit invites, friend requests, name changes and reports, with an appeal path for enforcement mistakes. Apply age-appropriate privacy and account settings. Do not add behavioral advertising or targeted monetization to the MVP. Cosmetic companions remain non-competitive and can be hidden.
+
+## 28. Accessibility and performance
+Touch controls support left/right-handed layouts, adjustable size and sensitivity. Keyboard support includes remapping and focus behavior. Essential actions have touch and keyboard paths where practical. Do not trap ordinary page navigation when gameplay is not active.
+
+Provide high contrast, scalable text, focus indicators, status cues that do not rely on color alone, reduced motion/particles, no rapid flashing, readable hazard warnings, and separate music/effects volume. Respect operating-system reduced-motion preferences where possible.
+
+Initial profiling targets, not guarantees: stable 30 FPS on supported mid-range Android devices with graceful reduced-effects mode; compact assets; lazy-load nonessential content; measure first interactive load, frame time, memory, asset loading and network latency. Dispose timers, listeners and network subscriptions when leaving screens or matches.
+
+## 29. Observability and operations
+Structured server logs include correlation ID, service, event type and non-sensitive identifiers. Track active sessions, queue wait, match completion, reconnect success, simulation tick duration, snapshot delay, validation failures, reward issuance, API errors and database latency. Alert on crash loops, abnormal rewards, disconnect spikes, database saturation and suspected abuse. Health endpoints must not leak configuration. Feature flags must allow ranked queues, purchases or social features to be disabled independently. Backups and restore tests are required before persistent account launch. Define incident response, player communication and rollback procedures.
+
+## 30. Build, test and release pipeline
+
+### 30.1 Target repository structure
+The current prototype may remain in index.html during the short MVP sprint. As the project grows, migrate toward:
+- src/app/ — boot and screen routing.
+- src/game/ — simulation, entities, collision and match state.
+- src/world/ — districts, roads, landmarks and world data.
+- src/ui/ — lobby, HUD, profile, settings and results.
+- src/network/ — transport adapter, protocol and reconnect.
+- src/services/ — profile, inventory and progression clients.
+- src/data/ — versioned configuration and catalogs.
+- assets/ — compressed graphics, audio and fonts.
+- tests/ — unit, integration and browser tests.
+- docs/ — architecture, privacy, operations and release notes.
+- supabase/migrations/ — schema and RLS migrations, if Supabase is adopted.
+- server/ — authoritative match service, when introduced.
+
+Avoid risky wholesale refactors during release-critical fixes; migrate module-by-module with tests.
+
+### 30.2 Automated checks
+Run JavaScript syntax/lint checks; unit tests for movement normalization, collision, dash cooldown, objective prerequisites, hazard transitions and rewards; schema tests for network/API messages; RLS tests for owner/non-owner/unauthenticated access; idempotency tests for rewards and purchases; integration tests for lifecycle and reconnect; browser smoke tests for home → lobby → match → results → profile; accessibility checks; dependency and secret scanning.
+
+### 30.3 Manual device matrix
+Test a lower-end Android phone, mid-range Android phone, current Android browser, desktop Chrome/Edge and narrow viewport. Include poor network, offline transitions, orientation changes, background/resume, low-power mode and repeated matches.
+
+### 30.4 Release blockers
+Block release for critical crashes, data loss, secret exposure, unauthorized data access, duplicate rewards, corrupted match state or inaccessible essential controls. Ranked release additionally requires authoritative validation, load tests, moderation, reconnect tests and security review.
+
+## 31. Delivery gates and acceptance criteria
+
+Gate 1 — Local playable MVP: supported phone can open the game, navigate lobby/settings, complete a local match, use movement/objectives, pause/restart, view results and retain supported local preferences without a blocking defect.
+
+Gate 2 — Friend-room networking prototype: two separate devices with the same Supabase project and room code connect, see presence and remote avatars, disconnect and manually reconnect. This does not certify shared results or competitive fairness.
+
+Gate 3 — Account and persistence beta: sessions work; profiles/settings persist; RLS proves users cannot access one another's private records; inventory and ledger changes are server-authorized; account recovery/deletion are documented.
+
+Gate 4 — Authoritative online casual: server owns movement validation, world state, objectives, timer and results; clients cannot mint rewards; reconnect/failure behavior is tested; target load and latency are measured.
+
+Gate 5 — Ranked/public release: rating/reward rules are published and validated; anti-abuse monitoring and moderation are active; privacy notice and support path exist; performance, accessibility, security and operational gates pass.
+
+## 32. Configurable values that require evidence
+Final world dimensions and spawn weights; movement speed and dash timing; match duration and safe-zone schedule; server tick/snapshot rates; hosting provider and regions; rating algorithm parameters and tier thresholds; coin rewards and cosmetic prices; reconnect grace period; retention periods and alert thresholds. Store these in versioned configuration and change them through documented balance/configuration releases.
+
+## 33. Architecture completion definition
+The architecture baseline is defined when product scope and safety boundaries; game modes and connected-world invariant; client/backend/service boundaries; simulation and match lifecycle; multiplayer protocol and authority; persistence entities and security; API contracts; progression/social rules; accessibility/performance/operations; testing and release gates; and configurable decisions are documented.
+
+This specification defines those areas and completes the architecture baseline. It does not mean implementation, hosting, backend configuration, security review, device testing or public release is complete. Architecture completion and implementation completion must be tracked separately.
