@@ -611,3 +611,24 @@ Final world dimensions and spawn weights; movement speed and dash timing; match 
 The architecture baseline is defined when product scope and safety boundaries; game modes and connected-world invariant; client/backend/service boundaries; simulation and match lifecycle; multiplayer protocol and authority; persistence entities and security; API contracts; progression/social rules; accessibility/performance/operations; testing and release gates; and configurable decisions are documented.
 
 This specification defines those areas and completes the architecture baseline. It does not mean implementation, hosting, backend configuration, security review, device testing or public release is complete. Architecture completion and implementation completion must be tracked separately.
+
+
+## 34. Account sign-in and cloud profile implementation addendum
+
+Implementation status as of 2026-10-31:
+- The browser client now includes an Account / Sign In screen.
+- Supabase Auth integration is implemented for Google OAuth, Facebook OAuth, Discord OAuth and passwordless email one-time links.
+- Auth sessions persist in the browser. External-provider passwords are never collected by FABCO.
+- The client can read and write a player's own `fabco_profiles` row after the SQL schema and provider settings are configured.
+- The profile snapshot includes display name, provider avatar when available, level, XP, practice statistics, achievement state, current cosmetics, cosmetic inventory and the local prototype coin balance.
+- SQL schema and Row Level Security policies are provided in `supabase/fabco_profiles.sql`.
+- Provider and deployment instructions are in `ACCOUNT_SETUP.md`.
+
+Security and trust boundary:
+- Row Level Security restricts each authenticated user to their own profile row.
+- The current cloud snapshot is client-authored and therefore not authoritative. Coins, XP, statistics and rank must not be accepted as official competitive results or used for prizes or purchases.
+- Never expose service-role keys, OAuth client secrets or database passwords in the browser or repository.
+- Supabase provider configuration, allowed redirect URLs, the SQL migration and real sign-in testing are still required before account sign-in can be considered operational.
+- Supabase free-tier quotas and third-party provider terms apply; there is no guarantee of unlimited free email delivery or service usage.
+
+This addendum records an implemented client foundation, not a completed production identity, account recovery, privacy deletion, moderation or authoritative progression service.
