@@ -76,16 +76,23 @@ function nearbyInteractable(){
  for(const b of worldBuildings){
   if(!['SHOP','MARKET','STORE','CAFE','CLINIC','LIBRARY','CAMPUS','HALL','FACTORY'].includes(b.label))continue;
   const d=Math.hypot(player.x-(b.x+b.w/2),player.y-(b.y+b.h/2));
-  if(d<dist){dist=d;best=b}
+  if(d<dist){dist=d;best={key:b.x+':'+b.y,label:b.label,building:b,type:'building'}}
  }
- return dist<78&&best?{key:best.x+':'+best.y,label:best.label,building:best}:null;
+ for(const panel of crystalPanels){if(panel.broken)continue;const d=Math.hypot(player.x-panel.x,player.y-panel.y);if(d<dist){dist=d;best={key:panel.key,label:'Crystal display',panel,type:'panel'}}}
+ return dist<78?best:null;
 }
 function interact(){
  if(!active)return;
  const target=nearbyInteractable();
- if(!target){interactionMessage='Move closer to a marked building first';interactionMessageUntil=elapsed+2;updateHUD();return}
+ if(!target){interactionMessage='Move closer to a marked location first';interactionMessageUntil=elapsed+2;updateHUD();return}
  if(usedInteractions.has(target.key)){interactionMessage='You have already used this location';interactionMessageUntil=elapsed+2;updateHUD();return}
  usedInteractions.add(target.key);
+ if(target.type==='panel'){
+  target.panel.broken=true;
+  for(let i=0;i<14;i++){const a=i/14*Math.PI*2;crystalShards.push({x:target.panel.x,y:target.panel.y,vx:Math.cos(a)*(35+Math.random()*45),vy:Math.sin(a)*(35+Math.random()*45),life:1.1})}
+  score+=2;interactionMessage='Crystal puzzle activated: +2 energy points';interactionMessageUntil=elapsed+3;updateHUD();return;
+ }
+ activityVisits++;
  const rewards={SHOP:3,MARKET:3,STORE:2,CAFE:3,CLINIC:4,LIBRARY:4,CAMPUS:5,HALL:4,FACTORY:3};
  const points=rewards[target.label]||2;score+=points;
  const messages={SHOP:'Shop visit: +3 energy points',MARKET:'Market visit: +3 energy points',STORE:'Store visit: +2 energy points',CAFE:'Cafe break: +3 energy points',CLINIC:'Clinic check-in: +4 energy points',LIBRARY:'Library activity: +4 energy points',CAMPUS:'Campus activity: +5 energy points',HALL:'Community hall activity: +4 energy points',FACTORY:'Factory discovery: +3 energy points'};
@@ -96,15 +103,24 @@ function safeWorldPoint(margin=24){for(let n=0;n<100;n++){const x=rand(margin,W-
 const world={name:'One Connected World',bg:'#101d22',grid:'#263b37',rock:'#344b45',edge:'#55e6df',rockCount:18};
 let selectedMode='solo';
 let usedInteractions=new Set(),interactionMessage='',interactionMessageUntil=0;
+const missionFragments=[
+ {x:250,y:175,found:false},{x:590,y:405,found:false},{x:835,y:505,found:false},
+ {x:1150,y:175,found:false},{x:1490,y:405,found:false},{x:1735,y:505,found:false}
+];
+let fragmentsFound=0,activityVisits=0,crystalShards=[];
+const crystalPanels=[
+ {x:255,y:220,broken:false,key:'panel-a'},{x:620,y:365,broken:false,key:'panel-b'},
+ {x:1155,y:220,broken:false,key:'panel-c'},{x:1520,y:365,broken:false,key:'panel-d'}
+];
 function renderLobby(){$('prepMode').textContent=selectedMode==='solo'?'Solo Survival':'Squad Survival';$('prepMap').textContent=world.name;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('selected',b.dataset.mode===selectedMode))}
 document.getElementById('modeChoices').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b||b.disabled)return;selectedMode=b.dataset.mode;renderLobby()});
 document.getElementById('enterPrepared').onclick=()=>{if(selectedMode!=='solo')return;show('game');reset();$('startOverlay').classList.remove('hidden')};
 function rand(a,b){return a+Math.random()*(b-a)}
-function reset(){stop();usedInteractions.clear();interactionMessage='';interactionMessageUntil=0;$('arenaTitle').textContent='FABCO / '+world.name.toUpperCase();player={x:900,y:560,r:12,speed:205,dash:0,dx:0,dy:0};bots=Array.from({length:8},()=>{const p=safeWorldPoint(18);return{x:p.x,y:p.y,r:11,angle:rand(0,6.28),hp:1,turn:rand(.5,2)}});orbs=Array.from({length:32},()=>{const p=safeWorldPoint(12);return{x:p.x,y:p.y,r:6}});rocks=Array.from({length:world.rockCount},()=>{const p=safeWorldPoint(28);return{x:p.x,y:p.y,r:rand(14,27)}});zone=520;cameraX=450;cameraY=280;elapsed=0;score=0;active=false;won=false;last=0;updateHUD();draw()}
+function reset(){stop();usedInteractions.clear();interactionMessage='';interactionMessageUntil=0;fragmentsFound=0;activityVisits=0;crystalShards=[];window.fabcoMissionComplete=false;missionFragments.forEach(f=>f.found=false);crystalPanels.forEach(p=>p.broken=false);$('arenaTitle').textContent='FABCO / '+world.name.toUpperCase();player={x:900,y:560,r:12,speed:205,dash:0,dx:0,dy:0};bots=Array.from({length:8},()=>{const p=safeWorldPoint(18);return{x:p.x,y:p.y,r:11,angle:rand(0,6.28),hp:1,turn:rand(.5,2)}});orbs=Array.from({length:32},()=>{const p=safeWorldPoint(12);return{x:p.x,y:p.y,r:6}});rocks=Array.from({length:world.rockCount},()=>{const p=safeWorldPoint(28);return{x:p.x,y:p.y,r:rand(14,27)}});zone=520;cameraX=450;cameraY=280;elapsed=0;score=0;active=false;won=false;last=0;updateHUD();draw()}
 function updateHUD(){
  $('alive').textContent=1+bots.filter(b=>b.hp).length;$('score').textContent=score;$('zone').textContent=Math.max(0,Math.round(zone/260*100))+'%';$('district').textContent=districtAt(player.x,player.y);$('landmark').textContent=nearbyLandmark(player.x,player.y);$('timer').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(Math.floor(elapsed%60)).padStart(2,'0');
  const target=nearbyInteractable();
- $('interactionHint').textContent=interactionMessageUntil>elapsed?interactionMessage:(target?(usedInteractions.has(target.key)?target.label+' — already visited':'Near '+target.label+' • Press E / USE'):'Explore the world • Find a shop, clinic or campus');
+ $('interactionHint').textContent=interactionMessageUntil>elapsed?interactionMessage:'MISSION: Energy fragments '+fragmentsFound+'/3 • Locations '+Math.min(activityVisits,2)+'/2'+(target?' • '+(usedInteractions.has(target.key)?target.label+' completed':'Near '+target.label+' — press E / USE'):'');
  $('interactBtn').disabled=!target||usedInteractions.has(target.key);
 }
 function start(){if(active)return;active=true;$('startOverlay').classList.add('hidden');last=performance.now();raf=requestAnimationFrame(loop)}
@@ -121,6 +137,10 @@ function update(dt){elapsed+=dt;zone=Math.max(144,520-elapsed*1.05);
 let x=(keys.d||keys.arrowright||touch.right?1:0)-(keys.a||keys.arrowleft||touch.left?1:0),y=(keys.s||keys.arrowdown||touch.down?1:0)-(keys.w||keys.arrowup||touch.up?1:0),m=Math.hypot(x,y)||1;
 const nextX=Math.max(12,Math.min(W-12,player.x+x/m*player.speed*dt));const nextY=Math.max(12,Math.min(H-12,player.y+y/m*player.speed*dt));if(!blocked(nextX,player.y,player.r))player.x=nextX;if(!blocked(player.x,nextY,player.r))player.y=nextY;player.dash=Math.max(0,player.dash-dt);if(player.dash===0)player.speed=205;
 orbs=orbs.filter(o=>{if(Math.hypot(o.x-player.x,o.y-player.y)<20){score+=1;return false}return true});
+missionFragments.forEach(f=>{if(!f.found&&Math.hypot(f.x-player.x,f.y-player.y)<22){f.found=true;fragmentsFound++;score+=2;interactionMessage='Energy fragment collected: +2 points';interactionMessageUntil=elapsed+2.5}});
+crystalShards=crystalShards.filter(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt;return p.life>0});
+if(fragmentsFound>=3&&activityVisits>=2&&!window.fabcoMissionComplete){window.fabcoMissionComplete=true;score+=15;interactionMessage='MISSION COMPLETE: Explorer! +15 bonus points';interactionMessageUntil=elapsed+4}
+
 if(orbs.length<22){const p=safeWorldPoint(12);orbs.push({x:p.x,y:p.y,r:6})}
 bots.forEach(b=>{if(!b.hp)return;b.turn-=dt;if(b.turn<=0){b.angle=rand(0,6.28);b.turn=rand(.6,2.2)}let target=Math.atan2(player.y-b.y,player.x-b.x);if(Math.hypot(player.x-b.x,player.y-b.y)<150)b.angle=target+rand(-.7,.7);const bx=b.x+Math.cos(b.angle)*75*dt,by=b.y+Math.sin(b.angle)*75*dt;if(!blocked(bx,by,b.r)){b.x=bx;b.y=by}else{b.angle+=Math.PI*rand(.7,1.3);b.turn=.35}if(b.x<15||b.x>W-15||b.y<15||b.y>H-15)b.angle+=Math.PI;if(Math.hypot(b.x-W/2,b.y-H/2)>zone-8)b.hp=0;if(Math.hypot(b.x-player.x,b.y-player.y)<24){b.angle+=Math.PI+rand(-1,1);player.x+=Math.cos(target+Math.PI)*25*dt;player.y+=Math.sin(target+Math.PI)*25*dt}});
 if(Math.hypot(player.x-W/2,player.y-H/2)>zone-4){if(Math.floor(elapsed*3)%2===0)score=Math.max(0,score-1)}
@@ -335,6 +355,10 @@ function drawTransport(ox,oy){
  ctx.restore();
 }
 drawTransport(0,0);drawTransport(900,0);drawTransport(0,560);drawTransport(900,560);
+// Collectible energy fragments and interactive fantasy crystal puzzle panels.
+missionFragments.forEach(f=>{if(f.found)return;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(elapsed*.8);ctx.shadowColor='#65f4ee';ctx.shadowBlur=15;ctx.fillStyle='#8af5e8';ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(7,0);ctx.lineTo(0,10);ctx.lineTo(-7,0);ctx.closePath();ctx.fill();ctx.restore()});
+crystalPanels.forEach(p=>{if(p.broken)return;ctx.fillStyle='rgba(95,218,220,.22)';ctx.fillRect(p.x-15,p.y-19,30,38);ctx.strokeStyle='#83f3eb';ctx.lineWidth=2;ctx.strokeRect(p.x-15,p.y-19,30,38);ctx.beginPath();ctx.moveTo(p.x,p.y-14);ctx.lineTo(p.x+8,p.y);ctx.lineTo(p.x,p.y+14);ctx.lineTo(p.x-8,p.y);ctx.closePath();ctx.stroke()});
+crystalShards.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life/1.1);ctx.fillStyle='#8af5e8';ctx.beginPath();ctx.moveTo(p.x,p.y-4);ctx.lineTo(p.x+3,p.y);ctx.lineTo(p.x,p.y+4);ctx.lineTo(p.x-3,p.y);ctx.closePath();ctx.fill()});ctx.globalAlpha=1;
 rocks.forEach(r=>{ctx.fillStyle=theme.rock;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#3b6572';ctx.stroke()});
 orbs.forEach(o=>{ctx.fillStyle='#55e6df';ctx.shadowColor='#55e6df';ctx.shadowBlur=13;ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0});
 ctx.save();ctx.beginPath();ctx.arc(W/2,H/2,zone,0,Math.PI*2);ctx.strokeStyle=theme.edge;ctx.lineWidth=3;ctx.setLineDash([10,9]);ctx.stroke();ctx.fillStyle='#e6536b12';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(W/2,H/2,zone,0,Math.PI*2);ctx.fill();ctx.restore();
