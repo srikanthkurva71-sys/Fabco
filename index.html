@@ -100,7 +100,48 @@ updateHUD();if(bots.every(b=>!b.hp)||elapsed>160){finish(true)}else if(Math.hypo
 function finish(survived){stop();let reward=Math.max(2,score+(survived?25:5));coins+=reward;let xp=score+(survived?20:0);profile.played++;if(survived)profile.wins++;profile.energy+=score;profile.xp+=xp;level=Math.floor(profile.xp/100)+1;profile.rating=Math.max(0,profile.rating+(survived?35:Math.max(5,Math.floor(score/3))));save();$('resultTitle').textContent=survived?'ARENA SURVIVED':'ROUND OVER';$('resultText').textContent=survived?'You outlasted the rivals. Excellent arena awareness.':'The storm caught you. Learn the map and try a new route.';$('rewardText').textContent='+'+reward+' coins  •  '+score+' energy collected';$('endOverlay').classList.remove('hidden')}
 function draw(){cameraX=Math.max(0,Math.min(W-VIEW_W,player.x-VIEW_W/2));cameraY=Math.max(0,Math.min(H-VIEW_H,player.y-VIEW_H/2));ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,VIEW_W,VIEW_H);ctx.save();ctx.translate(-cameraX,-cameraY);const theme=world;ctx.fillStyle=theme.bg;ctx.fillRect(0,0,W,H);ctx.strokeStyle=theme.grid;ctx.lineWidth=1;for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
 function road(points,width=24){ctx.strokeStyle='#59635f';ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();points.forEach((p,n)=>n?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();ctx.strokeStyle='#b6b39a';ctx.lineWidth=1.5;ctx.setLineDash([10,10]);ctx.stroke();ctx.setLineDash([])}
-function building(x,y,w,h,fill,label){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.strokeStyle='#91a69c';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#e4eee6';ctx.font='11px system-ui';ctx.fillText(label,x+4,y+14)}
+function building(x,y,w,h,fill,label){
+ ctx.save();
+ // Ground shadow and main facade.
+ ctx.fillStyle='rgba(12,25,22,.28)';ctx.fillRect(x+5,y+h-2,w,h*.12);
+ ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);
+ ctx.strokeStyle='#91a69c';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);
+ // Raised roof edge and a subtle highlight.
+ ctx.fillStyle='#354c4a';ctx.fillRect(x-3,y-5,w+6,8);
+ ctx.fillStyle='rgba(230,239,218,.22)';ctx.fillRect(x+3,y+4,w-6,3);
+ // Type-specific roof and facade details.
+ if(label==='HOME'){
+  ctx.fillStyle='#725542';ctx.beginPath();ctx.moveTo(x-5,y+3);ctx.lineTo(x+w/2,y-13);ctx.lineTo(x+w+5,y+3);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#b5d8d0';ctx.fillRect(x+w/2-7,y+23,14, h-25);
+ }else if(label==='SHOP'||label==='MARKET'||label==='STORE'||label==='CAFE'){
+  ctx.fillStyle='#d8c49a';ctx.fillRect(x+3,y+19,w-6,7);
+  const stripe=label==='CAFE'?'#c98268':'#648f85';
+  for(let k=0;k<Math.floor((w-6)/14);k++){ctx.fillStyle=k%2? '#e8d9b7':stripe;ctx.fillRect(x+3+k*14,y+19,14,7)}
+  ctx.fillStyle='#263f3b';ctx.fillRect(x+w*.38,y+h-18,w*.24,18);
+ }else if(label==='FACTORY'){
+  ctx.fillStyle='#465b60';ctx.beginPath();ctx.moveTo(x+8,y);ctx.lineTo(x+8,y-12);ctx.lineTo(x+32,y-12);ctx.lineTo(x+32,y);ctx.lineTo(x+58,y-10);ctx.lineTo(x+58,y);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#8fa9a5';ctx.fillRect(x+w-22,y+13,10,19);
+ }else if(label==='WAREHOUSE'||label==='DEPOT'){
+  ctx.fillStyle='#3f5354';ctx.fillRect(x+w*.25,y+h-25,w*.5,25);
+  ctx.strokeStyle='#9eb4a9';ctx.lineWidth=2;for(let k=1;k<4;k++){ctx.beginPath();ctx.moveTo(x+w*.25,y+h-25+k*6);ctx.lineTo(x+w*.75,y+h-25+k*6);ctx.stroke()}
+ }else if(label==='CLINIC'){
+  ctx.fillStyle='#d8e9df';ctx.fillRect(x+w/2-4,y+22,8,22);ctx.fillRect(x+w/2-11,y+29,22,8);
+  ctx.fillStyle='#344b48';ctx.fillRect(x+w*.4,y+h-16,w*.2,16);
+ }else if(label==='LIBRARY'){
+  ctx.fillStyle='#b9cbbd';for(let k=0;k<3;k++)ctx.fillRect(x+12+k*22,y+23,5,h-29);
+  ctx.fillStyle='#364e4a';ctx.fillRect(x+w*.42,y+h-18,w*.18,18);
+ }else if(label==='CAMPUS'||label==='HALL'){
+  ctx.fillStyle='#c5d8c8';for(let k=0;k<3;k++){const px=x+13+k*(w-26)/2;ctx.fillRect(px,y+22,6,h-25)}
+  ctx.fillStyle='#344c46';ctx.fillRect(x+w*.42,y+h-19,w*.16,19);
+ }else{
+  ctx.fillStyle='#c7e4df';const count=Math.max(2,Math.floor((w-16)/22));
+  for(let k=0;k<count;k++)ctx.fillRect(x+9+k*22,y+23,9,10);
+ }
+ // Small sign panel; label remains readable at normal play zoom.
+ ctx.fillStyle='rgba(27,46,42,.82)';ctx.fillRect(x+3,y+4,Math.min(w-6,label.length*6+8),14);
+ ctx.fillStyle='#f0f2df';ctx.font='bold 9px system-ui';ctx.textAlign='left';ctx.fillText(label,x+7,y+14);
+ ctx.restore();
+}
 // A continuous road spine links all four sectors of the same world.
 road([[0,280],[W,280]],28);road([[450,0],[450,H]],24);road([[1350,0],[1350,H]],24);
 function drawSector(ox,oy){
@@ -188,13 +229,7 @@ function drawNature(ox,oy){
 }
 drawNature(0,0);drawNature(900,0);drawNature(0,560);drawNature(900,560);
 worldBuildings.forEach(b=>building(b.x,b.y,b.w,b.h,b.fill,b.label));
-// Small architectural details make each district easier to read.
-worldBuildings.forEach(b=>{
- ctx.fillStyle='#c7e4df';
- const cols=Math.max(2,Math.floor((b.w-16)/22));
- for(let i=0;i<cols;i++){const wx=b.x+9+i*22;if(wx+8<b.x+b.w-3){ctx.fillRect(wx,b.y+23,8,9);if(b.h>45)ctx.fillRect(wx,b.y+b.h-16,8,8)}}
- ctx.fillStyle='rgba(25,35,35,.2)';ctx.fillRect(b.x+4,b.y+b.h-5,b.w-8,3);
-});
+// Building facades are now rendered with their own district-specific details.
 function streetLamp(x,y){
  ctx.strokeStyle='#354c4b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,y+20);ctx.lineTo(x,y-18);ctx.lineTo(x+10,y-24);ctx.stroke();
  ctx.fillStyle='#f5e6a4';ctx.shadowColor='#f5e6a4';ctx.shadowBlur=9;ctx.beginPath();ctx.arc(x+10,y-24,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
