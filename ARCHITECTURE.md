@@ -35,32 +35,38 @@ Low-pressure matches with no ranked-point loss. Casual results may update lifeti
 ### Ranked Survival
 Skill-based matchmaking using server-authoritative ratings. Track solo and squad ratings separately. Rank changes depend on placement, lobby strength, verified performance and team contribution. Anti-cheat validation is mandatory before ranked launch.
 
-## 4. Maps and environments
+## 4. One connected open world
 
-Initial original biome families:
-1. Homes / Township: low-rise homes, courtyards, rooftops, gardens and connected lanes.
-2. Forest: tree groups, clearings, trails, streams and visibility variation.
-3. Mountains: slopes, ridges, bridges, caves and elevated routes.
-4. Plains: open grassland, scattered cover, wind events and long routes.
-5. Valleys: riverbeds, cliffs, tunnels, bridges and elevation changes.
-6. Future environments: coastal/island, snowfield and industrial research district.
+FABCO has **one continuous shared world**, not separate selectable maps or isolated biome queues. Every match takes place in the same connected world. Players travel between districts without loading into a different map.
 
-Each map defines a unique ID, visual theme, world bounds, navigation/collision geometry, spawn regions, landmarks, obstacles, traversal routes, environmental events, safe-zone phases, collectible spawn groups, arrival camera paths, lighting and accessibility settings.
+The connected world contains:
+1. Residential township: houses, apartment blocks, courtyards, small shops and streets.
+2. Factory and industrial district: factory buildings, warehouses, service yards and safe routes.
+3. Campus district: educational buildings, playgrounds, courtyards and connecting paths.
+4. Green belt: forest, gardens, parkland, streams and trails.
+5. Highlands and valley: slopes, rocky paths, bridges and low-lying routes.
+6. Open fields and outskirts: grassland, farms, scattered buildings and broad travel corridors.
+7. Central town: public square, shops and roads linking the other districts.
 
-Map fairness rules:
-- Balance spawn positions by distance and route options.
+These are regions inside one world, not separate maps. They must connect through a coherent road/path network with sensible transitions, recognizable landmarks and navigation cues. Future expansion adds districts to this same world.
+
+The world definition includes district boundaries, roads and paths, building footprints, collision geometry, spawn regions, landmarks, traversal routes, environmental events, safe-zone phases, collectible spawn groups, lighting and accessibility settings.
+
+World fairness rules:
+- Balance spawn points and arrival routes across all districts.
 - Avoid unavoidable immediate spawn disadvantages.
-- Telegraph hazards with clear audio/visual cues and reaction time.
-- Show boundaries and safe zones clearly on the map and HUD.
-- Playtest maps before ranked release.
+- Telegraph hazards clearly and provide reaction time.
+- Let the safe zone move across districts without making a whole district permanently unusable.
+- Give buildings readable entrances, exits and navigation.
+- Playtest travel times, route choices and visibility before ranked release.
 
 ## 5. Arrival and transport
 
 ### Solo arrival
-A single-player dropship/aircraft transports the player over the map. The player selects a landing region during the arrival phase. The aircraft is a non-combat transport only. The sequence is short and skippable.
+A single-player transport aircraft brings the player into the same connected world. The player chooses a landing region or suggested landing point within that world. The aircraft is a non-combat transport only. The sequence is short and skippable.
 
 ### Squad arrival
-One transport helicopter carries the four-player squad. The leader can suggest a landing region; members can confirm or select nearby safe landing points. The helicopter is cinematic transport only, never a combat vehicle. Keep the sequence short and skippable.
+One transport helicopter carries the four-player squad into the same connected world. The leader can suggest a landing district; members can confirm or choose nearby safe landing points. The helicopter is cinematic transport only, never a combat vehicle. Keep the sequence short and skippable.
 
 ## 6. Characters, skins, clothing and pets
 
@@ -226,7 +232,7 @@ Disable open text chat initially or use predefined quick messages/emotes until m
 7. Party ready check and matchmaking.
 8. Map and arrival sequence.
 9. Landing and match countdown.
-10. Survival round, pickups, objectives and safe-zone phases.
+10. Travel between districts, collect energy, complete objectives and respond to safe-zone phases.
 11. Match completion and results.
 12. Server validates result.
 13. Rewards, statistics and rank update.
@@ -288,7 +294,7 @@ Responsive home/lobby/HUD; training arena; movement, dash, obstacles, energy pic
 Gate: stable browser play on target phone and desktop.
 
 ### Phase B — Content and customization
-Biome/map framework; character catalog and skin preview; outfit slots and pet cosmetics; FAB Coin mock wallet and cosmetic shop; profile and statistics screens.
+One connected open-world district framework; character catalog and skin preview; outfit slots and pet cosmetics; FAB Coin mock wallet and cosmetic shop; profile and statistics screens.
 Gate: inventory/equip flow tested; no pay-to-win effects.
 
 ### Phase C — Accounts and social
@@ -309,6 +315,6 @@ The repository currently contains an initial single-player browser prototype in 
 
 Implemented: FABCO home screen and instructions; keyboard/mobile movement; basic arena, practice rivals and obstacles; energy pickups and shrinking safe zone; local coin/level persistence and match results.
 
-Not implemented yet: 3D character models and selectable skins; pets and clothing inventory; cosmetic shop; full home/forest/mountain/plains/valley maps; aircraft/helicopter arrival sequences; four-player parties and friend invitations; accounts/cloud profiles; online multiplayer; ranked matchmaking/server validation; final statistics and leaderboard services.
+Not implemented yet: 3D character models and selectable skins; pets and clothing inventory; cosmetic shop; the complete connected world with township, factory, campus, green belt, highlands, valley and outskirts; aircraft/helicopter arrival sequences; four-player parties and friend invitations; accounts/cloud profiles; online multiplayer; ranked matchmaking/server validation; final statistics and leaderboard services.
 
 Architecture completion means the system design is defined; it does not mean every feature is already coded or operational.
