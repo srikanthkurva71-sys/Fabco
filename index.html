@@ -65,7 +65,7 @@ const worldBuildings=[
 {x:320,y:55,w:72,h:50,label:'CLINIC',fill:'#7b8991'},{x:410,y:48,w:92,h:64,label:'LIBRARY',fill:'#657b88'},{x:300,y:390,w:90,h:58,label:'MARKET',fill:'#8b765c'},{x:400,y:405,w:75,h:55,label:'CAFE',fill:'#92745d'},
 {x:80,y:205,w:60,h:42,label:'HOME',fill:'#8b7257'},{x:175,y:210,w:70,h:48,label:'HOME',fill:'#a17d5b'},{x:690,y:245,w:80,h:52,label:'DEPOT',fill:'#596a70'},{x:790,y:300,w:62,h:45,label:'STORE',fill:'#98785c'}
 ];
-worldBuildings.push(...worldBuildings.map(b=>({...b,x:b.x+900})),...worldBuildings.map(b=>({...b,y:b.y+560})),...worldBuildings.map(b=>({...b,x:b.x+900,y:b.y+560})));
+const baseWorldBuildings=worldBuildings.slice();worldBuildings.push(...baseWorldBuildings.map(b=>({...b,x:b.x+900})),...baseWorldBuildings.map(b=>({...b,y:b.y+560})),...baseWorldBuildings.map(b=>({...b,x:b.x+900,y:b.y+560})));
 
 function districtAt(x,y){x=((x%900)+900)%900;y=((y%560)+560)%560;if(x<260&&y<280)return 'Township';if(x>610&&y<210)return 'Factory';if(x>590&&y>350)return 'Campus';if(x<250&&y>330)return 'Green Belt';if(x>700&&y>470)return 'Outskirts';if(y<160&&x>260&&x<610)return 'Civic Quarter';if(y>350&&x>260&&x<590)return 'Market Quarter';return 'Central Town'}
 function blocked(x,y,r){return worldBuildings.some(b=>x+r>b.x&&x-r<b.x+b.w&&y+r>b.y&&y-r<b.y+b.h)}
