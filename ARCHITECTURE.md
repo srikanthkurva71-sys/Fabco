@@ -320,3 +320,35 @@ Connected-world limitations: this remains a 2D browser prototype with a fixed-si
 Not implemented yet: 3D character models; large-scale 3D world and enterable interiors; aircraft/helicopter arrival sequences; four-player parties and friend invitations; real accounts/cloud profiles; online multiplayer; authoritative match server; server-verified rewards and ranks; ranked matchmaking; persistent mission/achievement services and global leaderboards.
 
 Architecture completion means the system design is defined; it does not mean every feature is already coded or operational. The GitHub Pages build is a client-side prototype only. Production online play requires a separately deployed authoritative backend, account system, database policies, moderation/reporting workflows, load testing and security review.
+
+
+## Online multiplayer prototype — implementation status (2026-10-31)
+
+The browser client now includes a first real-time squad-room prototype using Supabase Realtime:
+- Squad Survival can be selected in the lobby.
+- Players enter the same 4–10 character room code and connect to the same Supabase project.
+- Supabase Presence announces connected players; Broadcast relays player coordinates and cosmetic color approximately 10 times per second.
+- Other connected players are drawn in the shared world and on the minimap, with their chosen nickname.
+- Squad match entry is blocked until the room connection is subscribed.
+- The Supabase project URL, public client key, and nickname are stored in browser local storage on that device.
+- The browser dynamically loads the Supabase JavaScript v2 client from jsDelivr when the player connects.
+
+### Required setup before two people can connect
+1. Create a Supabase project.
+2. In the Supabase project, copy the Project URL and the public client key (publishable key, or legacy anon key if that is what the project currently provides).
+3. In FABCO, open Settings → Online Multiplayer Connection. Paste the Project URL and public client key, choose a nickname, and save.
+4. Both players must configure the same Supabase project, enter the same room code, and press Connect to Room.
+5. After the status says Connected, select Squad Survival and enter the arena.
+
+Realtime Broadcast and Presence are used on a public channel. Anyone who knows a room code and has the same public project configuration may be able to join that room. Do not treat room codes as private authentication. Never put a Supabase service-role key, secret key, database password, or other server secret in the browser.
+
+### Important engineering limitations
+This is a networked visual-play prototype, not yet production multiplayer:
+- Player movement is client-reported and not validated by an authoritative game server; a modified client could send false positions.
+- Match outcomes, scoring, missions, coin balances, achievements, and rankings are still calculated locally and are not shared or server-verified.
+- Each client still runs its own practice rivals and match simulation; only connected human-player positions/presence are synchronized.
+- There is no account system, invite system, matchmaking queue, server-side room capacity enforcement, reconnect recovery workflow, moderation, or anti-cheat service yet.
+- A room code is a shared channel name, not a password. Do not put personal information in nicknames or room codes.
+- Internet connection and a correctly configured Supabase project are required. The repository's static GitHub Pages hosting alone does not provide a multiplayer server.
+
+The next production step is a trusted authoritative match service that validates movement, interactions, match state, scoring, player limits, and results. The current Broadcast prototype is suitable only for early friend-room experiments after configuration and testing.
