@@ -114,6 +114,32 @@ function drawSector(ox,oy){
  ctx.restore();
 }
 drawSector(0,0);drawSector(900,0);drawSector(0,560);drawSector(900,560);
+// Distinctive environmental landmarks repeated across the connected world.
+function drawLandmarks(ox,oy){
+ ctx.save();ctx.translate(ox,oy);
+ // Green Belt pond and footbridge.
+ ctx.fillStyle='#1b4c50';ctx.beginPath();ctx.ellipse(145,438,48,27,-.12,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#65b8ae';ctx.lineWidth=3;ctx.stroke();
+ ctx.strokeStyle='#b69a70';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(112,438);ctx.lineTo(178,438);ctx.stroke();
+ ctx.strokeStyle='#e0c79b';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(112,434);ctx.lineTo(178,434);ctx.moveTo(112,442);ctx.lineTo(178,442);ctx.stroke();
+ // Central plaza and fountain.
+ ctx.fillStyle='#53665f';ctx.beginPath();ctx.arc(520,178,42,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#a9b9a6';ctx.lineWidth=3;ctx.stroke();
+ ctx.fillStyle='#315e63';ctx.beginPath();ctx.arc(520,178,22,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#6ce0d2';ctx.beginPath();ctx.arc(520,178,8,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#e4eee6';ctx.font='bold 10px system-ui';ctx.fillText('CENTRAL PLAZA',485,230);
+ // Elevated lookout point.
+ ctx.fillStyle='#40594b';ctx.beginPath();ctx.moveTo(780,370);ctx.lineTo(835,315);ctx.lineTo(890,370);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#718b68';ctx.beginPath();ctx.moveTo(800,365);ctx.lineTo(835,330);ctx.lineTo(870,365);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#d5c69a';ctx.fillRect(824,350,22,17);
+ ctx.strokeStyle='#d5c69a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(835,350);ctx.lineTo(835,337);ctx.stroke();
+ ctx.fillStyle='#e4eee6';ctx.font='bold 10px system-ui';ctx.fillText('LOOKOUT POINT',790,390);
+ // Small landscaped civic garden.
+ ctx.fillStyle='#315c43';ctx.fillRect(540,55,85,55);
+ for(let i=0;i<5;i++){ctx.fillStyle='#75a878';ctx.beginPath();ctx.arc(550+i*17,82,7,0,Math.PI*2);ctx.fill()}
+ ctx.restore();
+}
+drawLandmarks(0,0);drawLandmarks(900,0);drawLandmarks(0,560);drawLandmarks(900,560);
 worldBuildings.forEach(b=>building(b.x,b.y,b.w,b.h,b.fill,b.label));
 rocks.forEach(r=>{ctx.fillStyle=theme.rock;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#3b6572';ctx.stroke()});
 orbs.forEach(o=>{ctx.fillStyle='#55e6df';ctx.shadowColor='#55e6df';ctx.shadowBlur=13;ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0});
