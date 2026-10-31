@@ -101,14 +101,20 @@ function finish(survived){stop();let reward=Math.max(2,score+(survived?25:5));co
 function draw(){cameraX=Math.max(0,Math.min(W-VIEW_W,player.x-VIEW_W/2));cameraY=Math.max(0,Math.min(H-VIEW_H,player.y-VIEW_H/2));ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,VIEW_W,VIEW_H);ctx.save();ctx.translate(-cameraX,-cameraY);const theme=world;ctx.fillStyle=theme.bg;ctx.fillRect(0,0,W,H);ctx.strokeStyle=theme.grid;ctx.lineWidth=1;for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
 function road(points,width=24){ctx.strokeStyle='#59635f';ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();points.forEach((p,n)=>n?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();ctx.strokeStyle='#b6b39a';ctx.lineWidth=1.5;ctx.setLineDash([10,10]);ctx.stroke();ctx.setLineDash([])}
 function building(x,y,w,h,fill,label){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.strokeStyle='#91a69c';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#e4eee6';ctx.font='11px system-ui';ctx.fillText(label,x+4,y+14)}
-// Roads physically connect the different districts.
-road([[0,280],[900,280]],28);road([[450,0],[450,560]],24);road([[150,130],[320,230],[450,280],[650,390],[820,500]],16);
-// District parks and grounds
-ctx.fillStyle='#315c43';ctx.fillRect(35,345,205,170);ctx.fillStyle='#638b65';ctx.fillRect(635,470,190,42);
-for(let n=0;n<17;n++){const x=55+(n%5)*36,y=365+Math.floor(n/5)*38;ctx.fillStyle='#326b4d';ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#75a878';ctx.beginPath();ctx.arc(x-3,y-4,7,0,Math.PI*2);ctx.fill()}
+// A continuous road spine links all four sectors of the same world.
+road([[0,280],[W,280]],28);road([[450,0],[450,H]],24);road([[1350,0],[1350,H]],24);
+function drawSector(ox,oy){
+ ctx.save();ctx.translate(ox,oy);
+ road([[150,130],[320,230],[450,280],[650,390],[820,500]],16);
+ // Green Belt park and campus grounds repeat as world scenery, not separate maps.
+ ctx.fillStyle='#315c43';ctx.fillRect(35,345,205,170);ctx.fillStyle='#638b65';ctx.fillRect(635,470,190,42);
+ for(let n=0;n<17;n++){const x=55+(n%5)*36,y=365+Math.floor(n/5)*38;ctx.fillStyle='#326b4d';ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#75a878';ctx.beginPath();ctx.arc(x-3,y-4,7,0,Math.PI*2);ctx.fill()}
+ ctx.fillStyle='#e0f0dc';ctx.font='12px system-ui';ctx.fillText('CAMPUS GROUNDS',650,495);
+ ctx.fillStyle='#d8e6db';ctx.font='bold 13px system-ui';ctx.fillText('RESIDENTIAL TOWNSHIP',35,30);ctx.fillText('FACTORY DISTRICT',675,30);ctx.fillText('CAMPUS',625,380);ctx.fillText('GREEN BELT PARK',55,335);ctx.fillText('CIVIC QUARTER',330,30);ctx.fillText('MARKET QUARTER',300,480);ctx.fillText('CENTRAL CONNECTOR',365,255);ctx.fillText('OPEN OUTSKIRTS',745,545);
+ ctx.restore();
+}
+drawSector(0,0);drawSector(900,0);drawSector(0,560);drawSector(900,560);
 worldBuildings.forEach(b=>building(b.x,b.y,b.w,b.h,b.fill,b.label));
-ctx.fillStyle='#e0f0dc';ctx.font='12px system-ui';ctx.fillText('CAMPUS GROUNDS',650,495);
-ctx.fillStyle='#d8e6db';ctx.font='bold 13px system-ui';ctx.fillText('RESIDENTIAL TOWNSHIP',35,30);ctx.fillText('FACTORY DISTRICT',675,30);ctx.fillText('CAMPUS',625,380);ctx.fillText('GREEN BELT PARK',55,335);ctx.fillText('CIVIC QUARTER',330,30);ctx.fillText('MARKET QUARTER',300,480);ctx.fillText('CENTRAL CONNECTOR',365,255);ctx.fillText('OPEN OUTSKIRTS',745,545);
 rocks.forEach(r=>{ctx.fillStyle=theme.rock;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#3b6572';ctx.stroke()});
 orbs.forEach(o=>{ctx.fillStyle='#55e6df';ctx.shadowColor='#55e6df';ctx.shadowBlur=13;ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0});
 ctx.save();ctx.beginPath();ctx.arc(W/2,H/2,zone,0,Math.PI*2);ctx.strokeStyle=theme.edge;ctx.lineWidth=3;ctx.setLineDash([10,9]);ctx.stroke();ctx.fillStyle='#e6536b12';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(W/2,H/2,zone,0,Math.PI*2);ctx.fill();ctx.restore();
