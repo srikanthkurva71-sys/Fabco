@@ -159,6 +159,34 @@ function bridge(x,y){
  for(let k=-20;k<=20;k+=10){ctx.beginPath();ctx.moveTo(x+k,y-22);ctx.lineTo(x+k,y+22);ctx.stroke()}
 }
 bridge(450,850);bridge(1350,850);
+// Forests, roadside vegetation and small natural details in each world sector.
+function drawTree(x,y,r=13){
+ ctx.fillStyle='rgba(10,24,18,.28)';ctx.beginPath();ctx.ellipse(x+4,y+7,r*1.05,r*.48,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#624b35';ctx.fillRect(x-3,y+2,6,12);
+ ctx.fillStyle='#28583e';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#477c50';ctx.beginPath();ctx.arc(x-r*.28,y-r*.28,r*.62,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#79a56a';ctx.beginPath();ctx.arc(x-r*.2,y-r*.42,r*.23,0,Math.PI*2);ctx.fill();
+}
+function drawNature(ox,oy){
+ ctx.save();ctx.translate(ox,oy);
+ // Tree groves at the edges of parks and open outskirts.
+ const groves=[[275,390],[310,425],[285,465],[735,405],[775,435],[820,465],[70,535],[115,520],[165,535],[700,525]];
+ groves.forEach((p,i)=>drawTree(p[0],p[1],11+(i%3)*2));
+ // Bushes and grass tufts beside paths.
+ for(let i=0;i<24;i++){
+  const x=260+(i%8)*20,y=535+Math.floor(i/8)*12;
+  ctx.fillStyle=i%2?'#47734a':'#628a55';ctx.beginPath();ctx.ellipse(x,y,7,4,-.25,0,Math.PI*2);ctx.fill();
+ }
+ // Stone edging and reeds beside the river-side green.
+ ctx.strokeStyle='#8b9870';ctx.lineWidth=2;ctx.setLineDash([4,5]);
+ ctx.beginPath();ctx.moveTo(35,780);ctx.quadraticCurveTo(110,755,190,775);ctx.stroke();ctx.setLineDash([]);
+ for(let i=0;i<9;i++){
+  const x=65+i*13,y=765+(i%3)*5;
+  ctx.strokeStyle='#8eb078';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+10);ctx.lineTo(x-2,y-2);ctx.moveTo(x+3,y+10);ctx.lineTo(x+6,y);ctx.stroke();
+ }
+ ctx.restore();
+}
+drawNature(0,0);drawNature(900,0);drawNature(0,560);drawNature(900,560);
 worldBuildings.forEach(b=>building(b.x,b.y,b.w,b.h,b.fill,b.label));
 rocks.forEach(r=>{ctx.fillStyle=theme.rock;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#3b6572';ctx.stroke()});
 orbs.forEach(o=>{ctx.fillStyle='#55e6df';ctx.shadowColor='#55e6df';ctx.shadowBlur=13;ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0});
