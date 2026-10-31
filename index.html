@@ -32,7 +32,7 @@
 <section id="game" class="screen"><button class="back" id="gameBack">← Leave match</button><div class="gamebox">
 <div class="gamehead"><strong id="arenaTitle">FABCO / TRAINING ARENA</strong><div class="gamehud"><span class="hud">ALIVE <b id="alive">9</b></span><span class="hud">TIME <b id="timer">00:00</b></span><span class="hud">ENERGY <b id="score">0</b></span><span class="hud">ZONE <b id="zone">100%</b></span><span class="hud">AREA <b id="district">Central Town</b></span><span class="hud">NEAR <b id="landmark">Town Square</b></span></div></div>
 <div class="canvaswrap"><canvas id="arena" width="900" height="560" aria-label="FABCO survival arena"></canvas><div class="overlay" id="startOverlay"><div class="modal"><div class="eyebrow">MATCH READY</div><h2>ENTER THE ARENA</h2><p>Collect energy. Stay inside the safe zone. Outlast 8 rivals.</p><button class="primary" id="startMatch">START MATCH</button></div></div><div class="overlay hidden" id="endOverlay"><div class="modal"><div class="eyebrow">MATCH COMPLETE</div><h2 id="resultTitle">ROUND OVER</h2><p id="resultText">Your result</p><div class="result" id="rewardText"></div><div class="actions" style="justify-content:center"><button class="primary" id="againBtn">PLAY AGAIN</button><button class="secondary" id="homeBtn">HOME</button></div></div></div></div>
-<div class="controls"><span class="desktop-hint">MOVE: WASD / ARROWS &nbsp; • &nbsp; DASH: SHIFT</span><span>Collect ◈ energy • Avoid the red storm edge</span><div class="mobile-controls"><button data-dir="up">↑</button><button data-dir="left">←</button><button data-dir="down">↓</button><button data-dir="right">→</button><button class="dash" id="dashBtn">DASH</button></div></div></div></section>
+<div class="controls"><span class="desktop-hint">MOVE: WASD / ARROWS &nbsp; • &nbsp; DASH: SHIFT</span><span id="interactionHint">Collect ◈ energy • Press E near a building to interact</span><div class="mobile-controls"><button data-dir="up">↑</button><button data-dir="left">←</button><button data-dir="down">↓</button><button data-dir="right">→</button><button class="dash" id="dashBtn">DASH</button><button id="interactBtn" type="button">USE</button></div></div></div></section>
 <div class="footer">FABCO • ORIGINAL SURVIVAL ARENA CONCEPT • BUILD 0.1</div>
 </div>
 <script>
@@ -70,23 +70,51 @@ const baseWorldBuildings=worldBuildings.slice();worldBuildings.push(...baseWorld
 function districtAt(x,y){x=((x%900)+900)%900;y=((y%560)+560)%560;if(x<260&&y<280)return 'Township';if(x>610&&y<210)return 'Factory';if(x>590&&y>350)return 'Campus';if(x<250&&y>330)return 'Green Belt';if(x>700&&y>470)return 'Outskirts';if(y<160&&x>260&&x<610)return 'Civic Quarter';if(y>350&&x>260&&x<590)return 'Market Quarter';return 'Central Town'}
 function blocked(x,y,r){return worldBuildings.some(b=>x+r>b.x&&x-r<b.x+b.w&&y+r>b.y&&y-r<b.y+b.h)}
 function nearbyLandmark(x,y){let best=null,dist=Infinity;for(const b of worldBuildings){const cx=b.x+b.w/2,cy=b.y+b.h/2,d=Math.hypot(x-cx,y-cy);if(d<dist){dist=d;best=b}}if(dist<115)return best.label.replaceAll('_',' ');if(x>330&&x<570&&y>220&&y<340)return 'Town Square';if(x<250&&y>330)return 'Green Belt Park';return 'Open Road'}
+function nearbyInteractable(){
+ if(!player)return null;
+ let best=null,dist=Infinity;
+ for(const b of worldBuildings){
+  if(!['SHOP','MARKET','STORE','CAFE','CLINIC','LIBRARY','CAMPUS','HALL','FACTORY'].includes(b.label))continue;
+  const d=Math.hypot(player.x-(b.x+b.w/2),player.y-(b.y+b.h/2));
+  if(d<dist){dist=d;best=b}
+ }
+ return dist<78&&best?{key:best.x+':'+best.y,label:best.label,building:best}:null;
+}
+function interact(){
+ if(!active)return;
+ const target=nearbyInteractable();
+ if(!target){interactionMessage='Move closer to a marked building first';interactionMessageUntil=elapsed+2;updateHUD();return}
+ if(usedInteractions.has(target.key)){interactionMessage='You have already used this location';interactionMessageUntil=elapsed+2;updateHUD();return}
+ usedInteractions.add(target.key);
+ const rewards={SHOP:3,MARKET:3,STORE:2,CAFE:3,CLINIC:4,LIBRARY:4,CAMPUS:5,HALL:4,FACTORY:3};
+ const points=rewards[target.label]||2;score+=points;
+ const messages={SHOP:'Shop visit: +3 energy points',MARKET:'Market visit: +3 energy points',STORE:'Store visit: +2 energy points',CAFE:'Cafe break: +3 energy points',CLINIC:'Clinic check-in: +4 energy points',LIBRARY:'Library activity: +4 energy points',CAMPUS:'Campus activity: +5 energy points',HALL:'Community hall activity: +4 energy points',FACTORY:'Factory discovery: +3 energy points'};
+ interactionMessage=messages[target.label]||'Location explored';interactionMessageUntil=elapsed+3;updateHUD();
+}
 function safeWorldPoint(margin=24){for(let n=0;n<100;n++){const x=rand(margin,W-margin),y=rand(margin,H-margin);if(!blocked(x,y,margin)&&Math.hypot(x-900,y-560)>95)return{x,y}}return{x:900,y:560}}
 
 const world={name:'One Connected World',bg:'#101d22',grid:'#263b37',rock:'#344b45',edge:'#55e6df',rockCount:18};
 let selectedMode='solo';
+let usedInteractions=new Set(),interactionMessage='',interactionMessageUntil=0;
 function renderLobby(){$('prepMode').textContent=selectedMode==='solo'?'Solo Survival':'Squad Survival';$('prepMap').textContent=world.name;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('selected',b.dataset.mode===selectedMode))}
 document.getElementById('modeChoices').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b||b.disabled)return;selectedMode=b.dataset.mode;renderLobby()});
 document.getElementById('enterPrepared').onclick=()=>{if(selectedMode!=='solo')return;show('game');reset();$('startOverlay').classList.remove('hidden')};
 function rand(a,b){return a+Math.random()*(b-a)}
-function reset(){stop();$('arenaTitle').textContent='FABCO / '+world.name.toUpperCase();player={x:900,y:560,r:12,speed:205,dash:0,dx:0,dy:0};bots=Array.from({length:8},()=>{const p=safeWorldPoint(18);return{x:p.x,y:p.y,r:11,angle:rand(0,6.28),hp:1,turn:rand(.5,2)}});orbs=Array.from({length:32},()=>{const p=safeWorldPoint(12);return{x:p.x,y:p.y,r:6}});rocks=Array.from({length:world.rockCount},()=>{const p=safeWorldPoint(28);return{x:p.x,y:p.y,r:rand(14,27)}});zone=520;cameraX=450;cameraY=280;elapsed=0;score=0;active=false;won=false;last=0;updateHUD();draw()}
-function updateHUD(){$('alive').textContent=1+bots.filter(b=>b.hp).length;$('score').textContent=score;$('zone').textContent=Math.max(0,Math.round(zone/260*100))+'%';$('district').textContent=districtAt(player.x,player.y);$('landmark').textContent=nearbyLandmark(player.x,player.y);$('timer').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(Math.floor(elapsed%60)).padStart(2,'0')}
+function reset(){stop();usedInteractions.clear();interactionMessage='';interactionMessageUntil=0;$('arenaTitle').textContent='FABCO / '+world.name.toUpperCase();player={x:900,y:560,r:12,speed:205,dash:0,dx:0,dy:0};bots=Array.from({length:8},()=>{const p=safeWorldPoint(18);return{x:p.x,y:p.y,r:11,angle:rand(0,6.28),hp:1,turn:rand(.5,2)}});orbs=Array.from({length:32},()=>{const p=safeWorldPoint(12);return{x:p.x,y:p.y,r:6}});rocks=Array.from({length:world.rockCount},()=>{const p=safeWorldPoint(28);return{x:p.x,y:p.y,r:rand(14,27)}});zone=520;cameraX=450;cameraY=280;elapsed=0;score=0;active=false;won=false;last=0;updateHUD();draw()}
+function updateHUD(){
+ $('alive').textContent=1+bots.filter(b=>b.hp).length;$('score').textContent=score;$('zone').textContent=Math.max(0,Math.round(zone/260*100))+'%';$('district').textContent=districtAt(player.x,player.y);$('landmark').textContent=nearbyLandmark(player.x,player.y);$('timer').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(Math.floor(elapsed%60)).padStart(2,'0');
+ const target=nearbyInteractable();
+ $('interactionHint').textContent=interactionMessageUntil>elapsed?interactionMessage:(target?(usedInteractions.has(target.key)?target.label+' — already visited':'Near '+target.label+' • Press E / USE'):'Explore the world • Find a shop, clinic or campus');
+ $('interactBtn').disabled=!target||usedInteractions.has(target.key);
+}
 function start(){if(active)return;active=true;$('startOverlay').classList.add('hidden');last=performance.now();raf=requestAnimationFrame(loop)}
 $('startMatch').onclick=start;
 function stop(){active=false;if(raf)cancelAnimationFrame(raf)}
-window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();if(e.key==='Shift')dash()});
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();if(e.key==='Shift')dash();if(e.key.toLowerCase()==='e'&&!e.repeat)interact()});
 window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 document.querySelectorAll('[data-dir]').forEach(b=>{const d=b.dataset.dir;b.addEventListener('pointerdown',e=>{e.preventDefault();touch[d]=true;b.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,()=>touch[d]=false))});
 $('dashBtn').addEventListener('pointerdown',e=>{e.preventDefault();dash()});
+$('interactBtn').addEventListener('click',interact);
 function dash(){if(player&&active&&player.dash<=0){player.dash=1.15;player.speed=420;setTimeout(()=>{if(player)player.speed=205},330)}}
 function loop(now){if(!active)return;let dt=Math.min((now-last)/1000,.035);last=now;update(dt);draw();raf=requestAnimationFrame(loop)}
 function update(dt){elapsed+=dt;zone=Math.max(144,520-elapsed*1.05);
