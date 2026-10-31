@@ -188,6 +188,39 @@ function drawNature(ox,oy){
 }
 drawNature(0,0);drawNature(900,0);drawNature(0,560);drawNature(900,560);
 worldBuildings.forEach(b=>building(b.x,b.y,b.w,b.h,b.fill,b.label));
+// Small architectural details make each district easier to read.
+worldBuildings.forEach(b=>{
+ ctx.fillStyle='#c7e4df';
+ const cols=Math.max(2,Math.floor((b.w-16)/22));
+ for(let i=0;i<cols;i++){const wx=b.x+9+i*22;if(wx+8<b.x+b.w-3){ctx.fillRect(wx,b.y+23,8,9);if(b.h>45)ctx.fillRect(wx,b.y+b.h-16,8,8)}}
+ ctx.fillStyle='rgba(25,35,35,.2)';ctx.fillRect(b.x+4,b.y+b.h-5,b.w-8,3);
+});
+function streetLamp(x,y){
+ ctx.strokeStyle='#354c4b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,y+20);ctx.lineTo(x,y-18);ctx.lineTo(x+10,y-24);ctx.stroke();
+ ctx.fillStyle='#f5e6a4';ctx.shadowColor='#f5e6a4';ctx.shadowBlur=9;ctx.beginPath();ctx.arc(x+10,y-24,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+}
+function parkBench(x,y){
+ ctx.fillStyle='#6f5138';ctx.fillRect(x-13,y-3,26,5);ctx.fillRect(x-12,y-10,24,5);
+ ctx.strokeStyle='#424c43';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-9,y+2);ctx.lineTo(x-9,y+9);ctx.moveTo(x+9,y+2);ctx.lineTo(x+9,y+9);ctx.stroke();
+}
+function districtSign(x,y,title){
+ ctx.fillStyle='#344f4c';ctx.fillRect(x-2,y-18,4,25);
+ ctx.fillStyle='#d8c58f';ctx.fillRect(x-36,y-31,72,18);
+ ctx.strokeStyle='#665b43';ctx.lineWidth=1;ctx.strokeRect(x-36,y-31,72,18);
+ ctx.fillStyle='#283d36';ctx.font='bold 8px system-ui';ctx.textAlign='center';ctx.fillText(title,x,y-19);ctx.textAlign='start';
+}
+function drawStreetDetails(ox,oy){
+ ctx.save();ctx.translate(ox,oy);
+ [[270,255],[590,255],[270,305],[590,305],[40,275],[850,275],[270,520],[590,520],[40,545],[850,545]].forEach(p=>streetLamp(p[0],p[1]));
+ parkBench(85,495);parkBench(205,495);parkBench(665,510);parkBench(790,510);
+ districtSign(260,205,'CIVIC');districtSign(610,205,'CAMPUS');
+ districtSign(270,485,'MARKET');districtSign(610,485,'PARK');
+ // Curbs and pedestrian crossing marks at the main connector.
+ ctx.fillStyle='#d5c8a5';
+ for(let i=0;i<5;i++){ctx.fillRect(430+i*9,267,5,3);ctx.fillRect(430+i*9,290,5,3)}
+ ctx.restore();
+}
+drawStreetDetails(0,0);drawStreetDetails(900,0);drawStreetDetails(0,560);drawStreetDetails(900,560);
 rocks.forEach(r=>{ctx.fillStyle=theme.rock;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#3b6572';ctx.stroke()});
 orbs.forEach(o=>{ctx.fillStyle='#55e6df';ctx.shadowColor='#55e6df';ctx.shadowBlur=13;ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0});
 ctx.save();ctx.beginPath();ctx.arc(W/2,H/2,zone,0,Math.PI*2);ctx.strokeStyle=theme.edge;ctx.lineWidth=3;ctx.setLineDash([10,9]);ctx.stroke();ctx.fillStyle='#e6536b12';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(W/2,H/2,zone,0,Math.PI*2);ctx.fill();ctx.restore();
