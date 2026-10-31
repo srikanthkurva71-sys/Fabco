@@ -42,9 +42,9 @@ GitHub Pages is static hosting with published-site and bandwidth limits. It does
 
 ## Milestones
 
-- [ ] M1 — Product specification and visual direction
-- [ ] M2 — Responsive game portal and playable local arena prototype
-- [ ] M3 — Character selection, movement, map and pickups
+- [x] M1 — Product specification and visual direction
+- [x] M2 — Responsive game portal and playable local arena prototype (initial build)
+- [x] M3 — Basic movement, arena obstacles, energy pickups, shrinking safe zone and practice rivals (initial build)
 - [ ] M4 — Supabase project setup and authentication configuration
 - [ ] M5 — Profiles, friends, invites and persistence with database security policies
 - [ ] M6 — Realtime lobby prototype
@@ -54,4 +54,4 @@ GitHub Pages is static hosting with published-site and bandwidth limits. It does
 
 ## Current status
 
-Project specification baseline is being established. No authentication provider, multiplayer server or live online match is configured yet. The website must not claim those features are live until implemented and tested.
+Initial browser prototype committed in `index.html`. It includes a responsive FABCO landing screen, instructions, keyboard/touch movement, practice rivals, collectible energy, arena obstacles, a shrinking safe zone, local coin/level persistence and match results. This is a solo practice prototype, not online multiplayer. No authentication provider, Supabase project, friend system or multiplayer server is configured yet. These features must not be presented as live until implemented and tested.
