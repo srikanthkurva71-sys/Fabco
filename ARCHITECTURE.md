@@ -122,9 +122,83 @@ Show several explainable percentages:
 
 A combined FABCO Performance Index may be a weighted 0–100 summary, but publish its formula and show the underlying statistics too. Initial testing weights could be placement 35%, survival 25%, objectives 20%, team contribution 20%; playtesting must validate or change these weights before ranked release. Training does not affect ranked rating.
 
-## 9. Ranks and seasons
+## 9. Ranks, skill rating, inactivity and account levels
 
-Proposed tiers: Rookie, Bronze, Silver, Gold, Platinum, Diamond, Elite and FABCO Legend. Track solo and squad ratings separately. Use placement, lobby strength, team contribution, verified match completion, anti-abuse checks and disconnect handling. Do not finalize thresholds until matchmaking is tested with real data.
+### 9.1 Exact competitive rank ladder
+
+Use this rank order, from entry tier to highest tier:
+
+1. Bronze
+2. Bronze II
+3. Bronze III
+4. Silver I
+5. Silver II
+6. Gold I
+7. Diamond I
+8. Diamond II
+9. Diamond III
+10. Master I
+11. Master II
+12. Grand Master I
+13. Elite I
+14. Elite II
+15. Elite III
+16. **FABCO Pro Elite Gamer** — highest prestige rank
+
+The rank name shown on a profile must match the player's current division. Solo and Squad ratings should be tracked separately, so a player's solo rank does not automatically determine their squad rank.
+
+### 9.2 How rank is earned
+
+Rank is based on demonstrated skill and verified competitive performance, not simply the number of matches played or a single lucky win. The server calculates a hidden rating from multiple match signals:
+
+- Match placement and wins.
+- Opponent/lobby strength.
+- Survival and safe-zone decision-making.
+- Objectives completed.
+- Team contribution in squad matches, including assists and revives.
+- Consistency across a meaningful number of ranked matches.
+- Verified fair-play and match completion status.
+
+Wins should carry substantial weight, but a player who wins against stronger competition should earn more rating than one farming weak lobbies. Leaving matches early, exploiting bugs or suspicious performance must not produce rating rewards. Training and casual matches do not change competitive rank.
+
+Each division has a rating range and promotion threshold. Exact rating numbers and promotion/relegation thresholds will be tuned using playtest data before ranked launch; they should not be guessed now.
+
+### 9.3 Inactivity rank decay
+
+The competitive rank can decrease after extended inactivity, but the player's account level and lifetime achievements never decrease because of inactivity.
+
+Proposed rule for initial testing:
+- First 14 consecutive days without completing a ranked match: no inactivity penalty.
+- After the grace period: inactivity decay applies once per completed 7-day inactive period.
+- Decay removes a limited number of ranked rating points; it must never directly erase account levels, coins already earned, cosmetics or lifetime statistics.
+- Decay cannot push a player below the floor of their current major tier in a single weekly update. Any tier demotion happens only through normal rating thresholds and must be clearly shown.
+- A completed ranked match pauses inactivity decay and resumes normal rating updates.
+- Show a clear warning in the lobby/profile before decay begins and when it is applied.
+
+The exact grace period and decay amount are configurable season settings. Test the rule with players before release. Avoid aggressive decay that punishes school, illness, holidays, connectivity problems or other legitimate breaks. Do not apply decay during a declared season break or server outage.
+
+### 9.4 Account level and battle record
+
+Account level is permanent progression and is separate from competitive rank:
+- Level increases from verified match XP, completed missions and milestones.
+- A win grants a meaningful XP bonus; placement, participation and objective/team contribution can also grant XP.
+- A loss or inactivity never reduces account level.
+- Training XP, if offered, must be capped and clearly separated from ranked rating so it cannot be exploited.
+
+Always show the player's battle record:
+- Battles played.
+- Battles won.
+- Win rate = wins / completed battles × 100.
+- Top-placement count and rate.
+- Solo and squad records separately.
+- Current rank and current rating progress.
+- Current account level and XP remaining to the next level.
+
+Do not describe level as a count of wins alone. The profile should show both total battles and wins, while account XP rewards a broader range of verified play. This makes the player's experience transparent without encouraging repetitive match farming.
+
+### 9.5 Rank integrity
+
+Rank updates are calculated and stored server-side after match validation. The client can display rank data but cannot submit or edit rating points. Track rating history, season, mode, decay events and reason codes for support and audit.
 
 ## 10. Lobby, friends and social
 
