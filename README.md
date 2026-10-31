@@ -2,6 +2,12 @@
 
 FABCO is an original, browser-first multiplayer survival arena game. It takes inspiration from the broad last-player-standing format, while using its own identity, maps, characters, progression and rules.
 
+## Complete architecture
+
+The full game blueprint is documented in [ARCHITECTURE.md](ARCHITECTURE.md). It defines Solo Survival, four-player Squad Survival, Training, Casual and Ranked modes; original home/township, forest, mountain, plains and valley environments; transport-only solo aircraft and squad helicopter arrival sequences; character skins, outfits, pets, FAB Coins, player statistics, percentage-based performance, ranks, friends, backend services, security and phased implementation gates.
+
+FABCO uses a non-weapon survival design: no firearms or realistic weapon mechanics. Competitive play is based on movement, defensive abilities, environmental hazards and outplaying rivals. FAB Coins are planned as cosmetic-only currency.
+
 ## Product goals
 
 - Play directly in the browser without redirecting to another game site.
