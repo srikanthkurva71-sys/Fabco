@@ -311,10 +311,12 @@ Gate: no critical security issues; fair-play and device tests complete.
 
 ## 17. Current implementation status
 
-The repository currently contains an initial single-player browser prototype in index.html. It is not a complete online game.
+The repository currently contains a playable single-player 2D browser prototype in index.html. It is not a complete online game or a production-scale open world.
 
-Implemented: FABCO home screen and instructions; keyboard/mobile movement; basic arena, practice rivals and obstacles; energy pickups and shrinking safe zone; local coin/level persistence and match results.
+Implemented in the browser prototype: FABCO home/lobby and instructions; keyboard and mobile touch movement; dash; practice rivals; energy pickups and a shrinking safe zone; local coin/level progression and match results; profile/statistics/rank display using local data; character, outfit and companion selection with local cosmetic inventory; one connected-world layout with named districts, buildings, basic building collision, connecting roads, district HUD, nearby-landmark indicator and an inset world minimap.
 
-Not implemented yet: 3D character models and selectable skins; pets and clothing inventory; cosmetic shop; the complete connected world with township, factory, campus, green belt, highlands, valley and outskirts; aircraft/helicopter arrival sequences; four-player parties and friend invitations; accounts/cloud profiles; online multiplayer; ranked matchmaking/server validation; final statistics and leaderboard services.
+Connected-world limitations: the world is currently a fixed 900×560 2D canvas. Districts are represented by a compact illustrated layout, not a large seamless explorable environment. Roads are visual paths, buildings are solid exterior obstacles, and interiors, camera-follow exploration, robust world navigation, richer landmarks and detailed scenery remain future work. Some scenery collision and bot navigation also need further testing.
+
+Not implemented yet: 3D character models; fully explorable large-scale world and enterable interiors; aircraft/helicopter arrival sequences; four-player parties and friend invitations; accounts/cloud profiles; online multiplayer; authoritative match server; server-verified rewards and ranks; ranked matchmaking; missions, achievements and leaderboard services.
 
 Architecture completion means the system design is defined; it does not mean every feature is already coded or operational.
