@@ -171,6 +171,7 @@ async function getAuthClient(){
   });
   const {data}=await authClient.auth.getSession();
   authUser=data.session?.user||null;
+  if(authUser)setTimeout(()=>loadCloudProfile(),0);
  }
  renderAccount();
  return authClient;
@@ -223,7 +224,7 @@ $('discordSignIn').onclick=()=>signInWithProvider('discord');
 $('emailSignIn').onclick=signInWithEmail;
 $('signOutBtn').onclick=async()=>{try{if(authClient){const {error}=await authClient.auth.signOut();if(error)throw error}authUser=null;accountSyncReady=false;renderAccount();accountStatus('Signed out. Your cloud backup remains in your account; this device keeps its local copy too.')}catch(error){accountStatus(error.message||'Sign-out failed.')}};
 renderAccount();
-if(networkConfig.url&&networkConfig.key)getAuthClient().then(()=>{if(authUser)loadCloudProfile()}).catch(error=>accountStatus(error.message));
+if(networkConfig.url&&networkConfig.key)getAuthClient().catch(error=>accountStatus(error.message));
 
 function networkStatus(message){$('networkStatus').textContent=message;$('networkStatus').style.color=networkReady?'#78f7b2':'#ffc96b'}
 function updatePlayerCount(){const n=1+remotePlayers.size;$('playerCount').textContent=n+' player'+(n===1?'':'s')+' + 8 practice rivals';$('matchType').textContent=networkReady?'Online squad room':'Offline practice'}
