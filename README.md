@@ -8,6 +8,10 @@ The full game blueprint is documented in [ARCHITECTURE.md](ARCHITECTURE.md). It 
 
 FABCO uses a non-weapon survival design: no firearms or realistic weapon mechanics. Competitive play is based on movement, defensive abilities, environmental hazards and outplaying rivals. FAB Coins are planned as cosmetic-only currency.
 
+## Competitive ranking rules
+
+The rank ladder is: Bronze → Bronze II → Bronze III → Silver I → Silver II → Gold I → Diamond I → Diamond II → Diamond III → Master I → Master II → Grand Master I → Elite I → Elite II → Elite III → **FABCO Pro Elite Gamer**. Rank is based on verified skill and match performance, including wins, placement, lobby strength and team contribution. Account level is permanent and never decreases; the profile separately shows battles played, battles won and win rate. The architecture proposes a 14-day ranked inactivity grace period followed by limited weekly rating decay, subject to playtesting. See Section 9 of ARCHITECTURE.md for the full rules.
+
 ## Product goals
 
 - Play directly in the browser without redirecting to another game site.
