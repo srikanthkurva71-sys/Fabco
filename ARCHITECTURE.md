@@ -632,3 +632,25 @@ Security and trust boundary:
 - Supabase free-tier quotas and third-party provider terms apply; there is no guarantee of unlimited free email delivery or service usage.
 
 This addendum records an implemented client foundation, not a completed production identity, account recovery, privacy deletion, moderation or authoritative progression service.
+
+## 35. Live FABCO Supabase backend provisioning (1 November 2026)
+
+The FABCO organization now owns a dedicated Supabase project on the Free plan.
+
+- Project: `FABCO`
+- Project reference: `epnmctnjvpgkcaftrmne`
+- Region: `ap-south-1` (South Asia)
+- Status at verification: `ACTIVE_HEALTHY`
+- The browser client is preconfigured with the project URL and public publishable key. The publishable key is intended for public client use; no secret/service-role key is embedded.
+- Database table `public.fabco_profiles` exists with RLS enabled and authenticated per-user SELECT/INSERT/UPDATE policies.
+- The migration `create_fabco_profiles` is recorded in Supabase migration history.
+- Verification on 1 November 2026: table metadata confirmed; a read-only profile-row count query succeeded; security and performance advisors returned no lint findings.
+- No user profile rows exist yet. No provider login has been completed or tested.
+
+### Remaining activation requirements and boundaries
+
+- OAuth providers (Google, Facebook, Discord) still require provider-side application credentials and Supabase dashboard configuration. This cannot be completed solely through the available project/database integration.
+- Supabase Auth URL configuration must allow the actual deployed FABCO Pages URL. Email OTP delivery remains subject to current free-tier limits and configured email settings.
+- Realtime room presence/broadcast uses the project credentials from the client. It is still a prototype: room codes are not authentication, public channels are not private/verified matchmaking, and clients can spoof their own movement.
+- Two-device browser testing has not been performed. The backend being active does not mean OAuth, email delivery, or online gameplay has passed end-to-end testing.
+- Cost constraint: remain on the Free plan and do not enable paid add-ons or upgrades. Free-tier quotas, inactivity pauses, and availability limits apply. If any dashboard step requires payment, stop rather than proceed.
