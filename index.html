@@ -220,7 +220,6 @@ async function signInWithEmail(){
  catch(error){accountStatus(error.message||'Email sign-in could not be sent. Check your Supabase email settings.')}
 }
 $('googleSignIn').onclick=()=>signInWithProvider('google');
-$('facebookSignIn').onclick=()=>signInWithProvider('facebook');
 $('discordSignIn').onclick=()=>signInWithProvider('discord');
 $('emailSignIn').onclick=signInWithEmail;
 $('signOutBtn').onclick=async()=>{try{if(authClient){const {error}=await authClient.auth.signOut();if(error)throw error}authUser=null;accountSyncReady=false;renderAccount();accountStatus('Signed out. Your cloud backup remains in your account; this device keeps its local copy too.')}catch(error){accountStatus(error.message||'Sign-out failed.')}};
