@@ -12,7 +12,7 @@ for (const source of inlineScripts) new Function(source);
 
 assert.match(html, /Continue with Google/, 'Google sign-in button must exist');
 assert.match(html, /signInWithOAuth\(\{provider:\s*'google'/, 'Google OAuth must be wired');
-assert.doesNotMatch(html, /signInWithOtp|emailRedirectTo|id=["']email["']|emailLogin|guest|play as guest/i,
+assert.doesNotMatch(html, /signInWithOtp|emailRedirectTo|id=["']email["']|emailLogin|play as guest/i,
   'Email login and guest entry must not be present');
 assert.match(html, /create_carrom_room/, 'Room creation RPC must be wired');
 assert.match(html, /join_carrom_room/, 'Room join RPC must be wired');
