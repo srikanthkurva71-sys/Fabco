@@ -51,19 +51,91 @@ $('leaveGame').onclick=async()=>{clearSavedGame();await closeRoom();state=null;s
 $('resetPractice').onclick=async()=>{if(mode==='online'){say('gameStatus','Online board cannot be reset by one player. Leave and create a new room.');return}state=freshState();draw();syncHud();saveGame();say('gameStatus','New practice match. Your turn.');};
 function draw(){const c=$('board'),g=c.getContext('2d');g.clearRect(0,0,W,W);g.fillStyle='#7a4828';g.fillRect(0,0,W,W);g.fillStyle='#d9a66c';g.fillRect(25,25,750,750);g.fillStyle='#f0c88f';g.fillRect(45,45,710,710);g.strokeStyle='#75401f';g.lineWidth=10;g.strokeRect(55,55,690,690);g.strokeStyle='#fff0d6';g.lineWidth=2;g.strokeRect(67,67,666,666);g.lineWidth=3;g.strokeStyle='#8e552f';g.beginPath();g.arc(CENTER,CENTER,100,0,Math.PI*2);g.stroke();g.beginPath();g.arc(CENTER,CENTER,42,0,Math.PI*2);g.stroke();for(const [x,y] of [[130,130],[670,130],[130,670],[670,670]]){g.strokeRect(x-32,y-15,64,30);g.strokeRect(x-15,y-32,30,64)}for(const [x,y] of POCKETS){g.fillStyle='#24150e';g.beginPath();g.arc(x,y,35,0,Math.PI*2);g.fill();g.fillStyle='#49301d';g.beginPath();g.arc(x,y,25,0,Math.PI*2);g.fill()}for(const coin of state.coins){if(coin.pocketed)continue;g.beginPath();g.fillStyle=coin.color==='white'?'#fff5df':coin.color==='black'?'#34251e':'#c72f35';g.arc(coin.x,coin.y,R,0,Math.PI*2);g.fill();g.strokeStyle='#6d4a2f';g.lineWidth=2;g.stroke();g.beginPath();g.strokeStyle=coin.color==='black'?'#9e8063':'#d6b68e';g.lineWidth=2;g.arc(coin.x,coin.y,R-5,0,Math.PI*2);g.stroke()}const s=state.striker;g.beginPath();g.fillStyle='#4c9fc0';g.arc(s.x,s.y,STRIKER,0,Math.PI*2);g.fill();g.strokeStyle='#e4f8ff';g.lineWidth=4;g.stroke();g.beginPath();g.strokeStyle='#fff';g.lineWidth=2;g.arc(s.x,s.y,STRIKER-7,0,Math.PI*2);g.stroke();if(aim&&isMyTurn()&&!state.over){g.strokeStyle='#2e718b';g.lineWidth=5;g.beginPath();g.moveTo(s.x,s.y);g.lineTo(s.x+(s.x-aim.x)*1.1,s.y+(s.y-aim.y)*1.1);g.stroke()}g.fillStyle='#58371f';g.font='bold 18px system-ui';g.fillText('FABCO CARROM',315,22);g.fillStyle='#8a4d27';g.font='bold 12px system-ui';g.fillText('BASELINE',355,740)}
 function pointerPos(e){const r=$('board').getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*W/r.height}}
-$('board').addEventListener('pointerdown',e=>{if(!state||!isMyTurn()||state.over||!state.settled)return;const p=pointerPos(e),s=state.striker;if(Math.hypot(p.x-s.x,p.y-s.y)<70){dragging=true;aim=p;$('board').setPointerCapture(e.pointerId);draw();return;}const vertical=state.turn===1||state.turn===2;if(vertical&&Math.abs(p.y-s.y)<65&&p.x>145&&p.x<655){s.x=clamp(p.x,165,635);draw()}else if(!vertical&&Math.abs(p.x-s.x)<65&&p.y>145&&p.y<655){s.y=clamp(p.y,165,635);draw()}});
+$('board').addEventListener('pointerdown',e=>{
+ if(!state||!isMyTurn()||state.over||!state.settled)return;
+ const p=pointerPos(e),s=state.striker,vertical=state.turn===3||state.turn===4;
+ const onBaseline=vertical?(Math.abs(p.x-s.x)<70&&p.y>=165&&p.y<=635):(Math.abs(p.y-s.y)<70&&p.x>=165&&p.x<=635);
+ if(Math.hypot(p.x-s.x,p.y-s.y)<42){dragging=true;aim=p;$('board').setPointerCapture(e.pointerId);draw();return;}
+ if(onBaseline){
+  if(vertical)s.y=clamp(p.y,175,625);else s.x=clamp(p.x,175,625);
+  draw();say('gameStatus','Striker positioned. Drag the striker backwards to aim, then release to shoot.');
+ }
+});
 $('board').addEventListener('pointermove',e=>{if(dragging){aim=pointerPos(e);draw()}});
 $('board').addEventListener('pointerup',e=>{if(!dragging)return;const p=pointerPos(e);dragging=false;shoot(p);aim=null;draw()});
 $('board').addEventListener('pointercancel',()=>{dragging=false;aim=null;draw()});
 function shoot(p){if(!isMyTurn()||state.over||!state.settled)return;let dx=state.striker.x-p.x,dy=state.striker.y-p.y,len=Math.hypot(dx,dy);if(len<8)return;shotOwnPocketed=false;const power=Math.min(1750,len*8);state.striker.vx=dx/len*power;state.striker.vy=dy/len*power;state.settled=false;state.shotCount++;lastFrame=performance.now();cancelAnimationFrame(anim);anim=requestAnimationFrame(physics)}
-function physics(now){if(!state||state.settled)return;const dt=Math.min(.025,(now-lastFrame)/1000||.016);lastFrame=now;const all=[...state.coins.filter(c=>!c.pocketed),state.striker];for(const b of all){b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=Math.pow(.993,dt*60);b.vy*=Math.pow(.993,dt*60);if(Math.abs(b.vx)<4)b.vx=0;if(Math.abs(b.vy)<4)b.vy=0;if(b.x<75){b.x=75;b.vx=Math.abs(b.vx)*.82}if(b.x>725){b.x=725;b.vx=-Math.abs(b.vx)*.82}if(b.y<75){b.y=75;b.vy=Math.abs(b.vy)*.82}if(b.y>725){b.y=725;b.vy=-Math.abs(b.vy)*.82}}
-for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const a=all[i],b=all[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01,min=(a===state.striker||b===state.striker)?R+STRIKER:R*2;if(d<min){const nx=dx/d,ny=dy/d,over=min-d;a.x-=nx*over/2;a.y-=ny*over/2;b.x+=nx*over/2;b.y+=ny*over/2;const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rel<0){const impulse=-rel*.88;a.vx-=impulse*nx;a.vy-=impulse*ny;b.vx+=impulse*nx;b.vy+=impulse*ny}}}
-for(const b of all){if(b===state.striker||b.pocketed)continue;for(const [x,y] of POCKETS)if(Math.hypot(b.x-x,b.y-y)<34){b.pocketed=true;b.vx=b.vy=0;if(b.color==='queen')state.queenPending=true;else if((mode==='local'&&localPlayers>2)||(mode==='online'&&activePlayers()>2)){state.score[state.turn-1]+=1;shotOwnPocketed=true;}else if((state.turn===1&&b.color==='white')||(state.turn===2&&b.color==='black')){state.score[state.turn-1]+=1;shotOwnPocketed=true;}else state.score[state.turn-1]=Math.max(0,state.score[state.turn-1]-1)}}
-if(Math.hypot(state.striker.x-42,state.striker.y-42)<34||Math.hypot(state.striker.x-758,state.striker.y-42)<34||Math.hypot(state.striker.x-42,state.striker.y-758)<34||Math.hypot(state.striker.x-758,state.striker.y-758)<34){placeStriker();state.striker.vx=state.striker.vy=0;state.score[state.turn-1]=Math.max(0,state.score[state.turn-1]-1)}
-draw();if(all.some(b=>Math.abs(b.vx)>5||Math.abs(b.vy)>5)){anim=requestAnimationFrame(physics);return}
-state.striker.vx=state.striker.vy=0;state.settled=true;if(state.queenPending){const own=shotOwnPocketed;if(own){state.score[state.turn-1]+=3;state.queenCovered=true;state.queenPending=false}else{state.coins.find(c=>c.color==='queen').pocketed=false;state.queenPending=false;state.coins.find(c=>c.color==='queen').x=CENTER;state.coins.find(c=>c.color==='queen').y=CENTER}}
-const remaining=state.coins.filter(c=>c.color!=='queen'&&!c.pocketed).length;if(remaining===0){state.over=true;say('gameStatus',state.score[0]===state.score[1]?'Match drawn.':'Match complete — '+(state.score[0]>state.score[1]?'Player 1':'Player 2')+' wins!')}else{state.turn=state.turn%activePlayers()+1;placeStriker();say('gameStatus',isMyTurn()?'Your turn.':'Opponent turn.');}
-syncHud();draw();saveGame();if(mode==='online')sendState(state.over?'Match finished.':('Player '+state.turn+' turn.'));if(mode==='robot'&&state.turn===2&&!state.over){robotTimer=setTimeout(robotMove,850)}}
+function physics(now){
+if(!state||state.settled)return;
+const dt=Math.min(.025,(now-lastFrame)/1000||.016);lastFrame=now;
+const all=[...state.coins.filter(c=>!c.pocketed),state.striker];
+const pocketRadius=49,innerMin=75,innerMax=725;
+let ownPocketedThisShot=false,opponentPocketedThisShot=false,queenPocketedThisShot=false,strikerFoul=false;
+// Move pieces, detect pockets BEFORE wall rebounds. The previous wall clamp kept
+// coins too far from the pocket centres, making pocketing nearly impossible.
+for(const b of all){
+ b.x+=b.vx*dt;b.y+=b.vy*dt;
+ b.vx*=Math.pow(.993,dt*60);b.vy*=Math.pow(.993,dt*60);
+ if(Math.abs(b.vx)<4)b.vx=0;if(Math.abs(b.vy)<4)b.vy=0;
+ if(b!==state.striker){
+  for(const [px,py] of POCKETS){
+   if(Math.hypot(b.x-px,b.y-py)<=pocketRadius){
+    b.pocketed=true;b.vx=b.vy=0;
+    if(b.color==='queen'){queenPocketedThisShot=true;state.queenPending=true;}
+    else{
+     const own=(activePlayers()>2)||((state.turn===1&&b.color==='white')||(state.turn===2&&b.color==='black'));
+     if(own){state.score[state.turn-1]++;ownPocketedThisShot=true;shotOwnPocketed=true;}
+     else{state.score[state.turn-1]=Math.max(0,state.score[state.turn-1]-1);opponentPocketedThisShot=true;}
+    }
+    break;
+   }
+  }
+  if(b.pocketed)continue;
+ }
+ // Striker entering a pocket is a foul; return it to the current baseline.
+ if(b===state.striker&&POCKETS.some(([px,py])=>Math.hypot(b.x-px,b.y-py)<=pocketRadius)){
+  strikerFoul=true;b.vx=b.vy=0;placeStriker();state.score[state.turn-1]=Math.max(0,state.score[state.turn-1]-1);continue;
+ }
+ if(b.x<innerMin){b.x=innerMin;b.vx=Math.abs(b.vx)*.82;}
+ if(b.x>innerMax){b.x=innerMax;b.vx=-Math.abs(b.vx)*.82;}
+ if(b.y<innerMin){b.y=innerMin;b.vy=Math.abs(b.vy)*.82;}
+ if(b.y>innerMax){b.y=innerMax;b.vy=-Math.abs(b.vy)*.82;}
+}
+// Resolve collisions only for pieces that have not been pocketed.
+const moving=[...state.coins.filter(c=>!c.pocketed),state.striker];
+for(let i=0;i<moving.length;i++)for(let j=i+1;j<moving.length;j++){
+ const a=moving[i],b=moving[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01;
+ const min=(a===state.striker||b===state.striker)?R+STRIKER:R*2;
+ if(d<min){const nx=dx/d,ny=dy/d,over=min-d;a.x-=nx*over/2;a.y-=ny*over/2;b.x+=nx*over/2;b.y+=ny*over/2;
+  const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+  if(rel<0){const impulse=-rel*.88;a.vx-=impulse*nx;a.vy-=impulse*ny;b.vx+=impulse*nx;b.vy+=impulse*ny;}
+ }
+}
+draw();
+if(moving.some(b=>Math.abs(b.vx)>5||Math.abs(b.vy)>5)){anim=requestAnimationFrame(physics);return;}
+state.striker.vx=state.striker.vy=0;state.settled=true;
+if(state.queenPending){
+ if(ownPocketedThisShot){state.score[state.turn-1]+=3;state.queenCovered=true;state.queenPending=false;}
+ else{const queen=state.coins.find(c=>c.color==='queen');if(queen){queen.pocketed=false;queen.x=CENTER;queen.y=CENTER;}state.queenPending=false;}
+}
+const remaining=state.coins.filter(c=>c.color!=='queen'&&!c.pocketed).length;
+if(remaining===0){
+ state.over=true;const high=Math.max(...state.score.slice(0,activePlayers()));
+ const winners=state.score.slice(0,activePlayers()).map((v,i)=>v===high?'Player '+(i+1):null).filter(Boolean);
+ say('gameStatus',winners.length>1?'Match drawn: '+winners.join(', '):'Match complete — '+winners[0]+' wins!');
+}else{
+ // A player keeps the turn after pocketing one of their own coins, unless
+ // the striker was pocketed. An opponent coin or a missed shot passes the turn.
+ if(strikerFoul||opponentPocketedThisShot||(!ownPocketedThisShot&&!queenPocketedThisShot)){
+  state.turn=state.turn%activePlayers()+1;
+ }
+ placeStriker();
+ say('gameStatus',strikerFoul?'Striker foul — one point deducted. '+(isMyTurn()?'Your turn.':'Next player turn.'):ownPocketedThisShot?'Coin pocketed — take another turn.':isMyTurn()?'Your turn.':'Opponent turn.');
+}
+syncHud();draw();saveGame();
+if(mode==='online')sendState(state.over?'Match finished.':('Player '+state.turn+' turn.'));
+if(mode==='robot'&&state.turn===2&&!state.over)robotTimer=setTimeout(robotMove,850);
+}
 function robotMove(){if(!state||state.over||mode!=='robot'||state.turn!==2)return;const target=state.coins.filter(c=>!c.pocketed&&c.color==='black').sort((a,b)=>Math.hypot(a.x-state.striker.x,a.y-state.striker.y)-Math.hypot(b.x-state.striker.x,b.y-state.striker.y))[0];if(!target){state.turn=1;syncHud();return}shotOwnPocketed=false;const dx=target.x-state.striker.x,dy=target.y-state.striker.y,d=Math.hypot(dx,dy)||1;state.striker.vx=dx/d*rand(420,700);state.striker.vy=dy/d*rand(420,700);state.settled=false;lastFrame=performance.now();anim=requestAnimationFrame(physics)}
 $('robotPlay').onclick=()=>{if(ensureSignedIn())startGame('robot')};$('localPlay').onclick=()=>{if(ensureSignedIn()){localPlayers=Number($('localPlayers').value)||2;startGame('local')}};
 window.addEventListener('pagehide',saveGame);
