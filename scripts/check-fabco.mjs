@@ -23,7 +23,7 @@ assert.match(html, /localPlayers/, 'Local pass-and-play player selector must exi
 assert.match(html, /PLAY ON THIS PHONE/, 'Local game entry must exist');
 assert.match(html, /Math\.min\(1750,len\*8\)/, 'Striker power must be increased');
 assert.match(html, /onlinePlayers/, 'Online room must track up to four player seats');
-assert.match(html, /YOUR SEAT|SEAT \+roomSeat/, 'Player seat identity must be shown');
+assert.match(html, /playerIdentity/, 'Player seat identity must be shown');
 assert.match(html, /roomSeat/, 'Online player seat assignment must exist');
 assert.match(html, /function activePlayers\(\)/, 'Turn rotation must support the selected player count');
 
