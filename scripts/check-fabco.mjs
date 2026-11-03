@@ -19,5 +19,11 @@ assert.match(html, /join_carrom_room/, 'Room join RPC must be wired');
 assert.match(html, /config:\{private:true/, 'Realtime room channel must be private');
 assert.match(html, /robotPlay/, 'Robot practice mode must exist');
 assert.match(html, /pointerdown|pointermove|pointerup/, 'Touch/mouse controls must exist');
+assert.match(html, /localPlayers/, 'Local pass-and-play player selector must exist');
+assert.match(html, /PLAY ON THIS PHONE/, 'Local game entry must exist');
+assert.match(html, /Math\.min\(1750,len\*8\)/, 'Striker power must be increased');
+assert.match(html, /onlinePlayers/, 'Online room must track up to four player seats');
+assert.match(html, /YOUR SEAT|SEAT \+roomSeat/, 'Player seat identity must be shown');
+assert.match(html, /array_append\(v_players,auth\.uid\(\)\)/, 'Four-player room database migration must be present in the app source or SQL docs');
 
 console.log('FABCO static checks passed.');
