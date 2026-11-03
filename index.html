@@ -126,7 +126,7 @@ if(remaining===0){
 }else{
  // A player keeps the turn after pocketing one of their own coins, unless
  // the striker was pocketed. An opponent coin or a missed shot passes the turn.
- if(strikerFoul||opponentPocketedThisShot||(!ownPocketedThisShot&&!queenPocketedThisShot)){
+ if(strikerFoul||opponentPocketedThisShot||!ownPocketedThisShot){
   state.turn=state.turn%activePlayers()+1;
  }
  placeStriker();
