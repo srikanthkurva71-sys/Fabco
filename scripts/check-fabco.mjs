@@ -26,6 +26,13 @@ assert.match(html, /onlinePlayers/, 'Online room must track up to four player se
 assert.match(html, /playerIdentity/, 'Player seat identity must be shown');
 assert.match(html, /roomSeat/, 'Online player seat assignment must exist');
 assert.match(html, /function activePlayers\(\)/, 'Turn rotation must support the selected player count');
+assert.match(html, /const pocketRadius=49/, 'Coins must be able to reach and enter corner pockets');
+assert.ok(html.indexOf("if(b!==state.striker)") < html.indexOf("if(b.x<innerMin)"), 'Pocket detection must run before wall rebound');
+assert.match(html, /ownPocketedThisShot/, 'Pocketing an own coin must be tracked for turn rules');
+assert.match(html, /state\.turn=state\.turn%activePlayers\(\)\+1/, 'Turn rotation must handle all selected players');
+assert.match(html, /s\.y=clamp\(p\.y,175,625\)/, 'Side-player striker must move along the vertical baseline');
+assert.match(html, /s\.x=clamp\(p\.x,175,625\)/, 'Top/bottom striker must move along the horizontal baseline');
+
 assert.match(html, /function saveGame\(\)/, 'Active game state must be persisted on the device');
 assert.match(html, /function restoreSavedGame\(\)/, 'Saved games must be restored after reopening');
 assert.match(html, /addEventListener\('pagehide',saveGame\)/, 'Game state must be saved when the page is closed or suspended');
