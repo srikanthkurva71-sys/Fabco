@@ -1,67 +1,59 @@
-# FABCO — Game Project
+# FABCO — Last Zone
 
-FABCO is an original, browser-first multiplayer survival arena game. It takes inspiration from the broad last-player-standing format, while using its own identity, maps, characters, progression and rules.
+FABCO is an original, browser-based **2D survival arena prototype**. It uses an original visual identity and game equipment rather than copying another game's artwork or interface.
 
-## Complete architecture
+## Play
 
-The full game blueprint is documented in [ARCHITECTURE.md](ARCHITECTURE.md). It defines Solo Survival, four-player Squad Survival, Training, Casual and Ranked modes; original home/township, forest, mountain, plains and valley environments; transport-only solo aircraft and squad helicopter arrival sequences; character skins, outfits, pets, FAB Coins, player statistics, percentage-based performance, ranks, friends, backend services, security and phased implementation gates.
+GitHub Pages: https://srikanthkurva71-sys.github.io/Fabco/
 
-FABCO uses a non-weapon survival design: no firearms or realistic weapon mechanics. Competitive play is based on movement, defensive abilities, environmental hazards and outplaying rivals. FAB Coins are planned as cosmetic-only currency.
+## Current playable prototype
 
-## Competitive ranking rules
+- Entry screen with Google OAuth and email magic-link options (requires a configured Supabase project); local demo mode is available before account setup.
+- Lobby, character collection, armory, inventory, profile and settings.
+- Landscape-oriented 2D arena with keyboard and touch movement.
+- One connected arena with a shrinking safe zone.
+- Ground supply crates with fictional game equipment and utility pickups.
+- Eight abstract equipment classes: Pulse Tagger, Burst Beacon, Scatter Spark, Precision Marker, Arc Launcher, Foam Tool, Shield Disc and First-aid Kit.
+- Practice rivals with simple movement, proximity pressure and hit points; equipped tools can tag rivals.
+- Match timer, health, alive count, match results and local progression.
+- New accounts start **UNRANKED**. No automatic Bronze rank.
+- Character unlocks require coins earned through completed matches.
+- No energy collection, energy meter, real-money purchases or paid add-ons.
 
-The rank ladder is: Bronze → Bronze II → Bronze III → Silver I → Silver II → Gold I → Diamond I → Diamond II → Diamond III → Master I → Master II → Grand Master I → Elite I → Elite II → Elite III → **FABCO Pro Elite Gamer**. Rank is based on verified skill and match performance, including wins, placement, lobby strength and team contribution. Account level is permanent and never decreases; the profile separately shows battles played, battles won and win rate. The architecture proposes a 14-day ranked inactivity grace period followed by limited weekly rating decay, subject to playtesting. See Section 9 of ARCHITECTURE.md for the full rules.
+## Controls
 
-## Product goals
+- **W / A / S / D** or **arrow keys** — move.
+- **E** or **PICK UP** — collect a nearby supply crate.
+- **Space** or **USE TOOL** — use the currently equipped fictional game tool.
+- **P** or the pause button — pause.
 
-- Play directly in the browser without redirecting to another game site.
-- Install on supported devices as a Progressive Web App (PWA).
-- Mobile-first touch controls and desktop keyboard controls.
-- Original characters, arenas, cosmetics, coins, ranks, missions and friend invitations.
-- Guest play plus account-based profiles and saved progress.
-- Free-to-start infrastructure; no Firebase.
+On phones, rotate to landscape for the intended gameplay layout and use the on-screen movement/action buttons.
 
-## Gameplay direction
+## Account setup
 
-FABCO will be a non-weapon competitive survival game. Players explore an arena, avoid environmental hazards, navigate a shrinking safe area, collect tokens, use defensive movement abilities and compete to be the last player remaining. The project will not include firearms or realistic weapon mechanics. All maps, characters, names, art and interface elements will be original.
+See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for free-tier Supabase Auth setup, Google/email provider configuration, redirect URLs and security guidance.
 
-## Planned game systems
+Important:
+- Only the Supabase project URL and public anon/publishable key belong in the browser.
+- Never publish a service-role key, secret key, OAuth client secret or database password.
+- Local demo progress is stored in the browser and can be edited or cleared. It is not trusted competitive data.
 
-1. **Arena:** original maps, obstacles, moving hazards, safe-zone progression and spawn balancing.
-2. **Characters:** selectable original avatars, cosmetic outfits and visual customization.
-3. **Movement:** walking, sprinting, jumping/dodging and collision handling.
-4. **Pickups:** coins/tokens, temporary shields, speed boosts and defensive power-ups.
-5. **Match flow:** lobby, matchmaking, countdown, match, results and rematch.
-6. **Progression:** player level, seasonal rank, achievements, missions and cosmetic unlocks.
-7. **Social:** friend requests, invite codes, party lobby and mute/report/block controls.
-8. **Profiles:** display name, generated player ID, avatar and saved progress.
+## Current limitations — not yet production multiplayer
 
-## Proposed technology
+This is a local 2D practice prototype, not a finished 3D battle royale game. It does not yet provide:
+- A trusted authoritative multiplayer game server or real matchmaking.
+- Shared online match state, squads, friends or reconnect handling.
+- Server-validated eliminations, results, coins, inventory or ranks.
+- Cloud-saved player progression, anti-cheat, moderation or reporting.
+- Full animation, audio, complete map art, vehicles or production-ready mobile optimization.
+- Verified production OAuth configuration; Google and email sign-in need the owner's Supabase project setup and end-to-end testing.
 
-- **Client:** HTML, CSS, JavaScript and Phaser for the 2D browser game.
-- **Static hosting:** GitHub Pages for the public game client and PWA files.
-- **Accounts and data:** Supabase Auth + Postgres on the Free plan, subject to quotas and inactivity pausing.
-- **Realtime prototype:** Supabase Realtime for small-scale lobby/presence experiments. Competitive multiplayer ultimately needs an authoritative game server; GitHub Pages cannot run that server.
-- **Security:** server-side validation for ranks, coins, match results and friend actions. Never trust client-submitted scores or currency balances.
+Do not advertise ranked online multiplayer or production security until these systems have been implemented and independently tested.
 
-## Free-tier constraints
+## Free-tier policy
 
-Free tiers have limits and can change. Supabase Free currently lists 50,000 monthly active users, 500 MB database, 5 GB egress, 2 million Realtime messages and 200 peak Realtime connections; free projects may pause after a week of inactivity. These are provider quotas, not a guarantee of unlimited players.
+FABCO's development plan is to use free services only. Do not enable billing, paid add-ons, paid infrastructure or subscriptions. Provider free-tier quotas and inactivity rules still apply; free hosting is not unlimited capacity.
 
-GitHub Pages is static hosting with published-site and bandwidth limits. It does not host the realtime game server. Do not put passwords, OAuth client secrets, service-role keys or private credentials in this public repository.
+## Development checks
 
-## Milestones
-
-- [x] M1 — Product specification and visual direction
-- [x] M2 — Responsive game portal and playable local arena prototype (initial build)
-- [x] M3 — Basic movement, arena obstacles, energy pickups, shrinking safe zone and practice rivals (initial build)
-- [ ] M4 — Supabase project setup and authentication configuration
-- [ ] M5 — Profiles, friends, invites and persistence with database security policies
-- [ ] M6 — Realtime lobby prototype
-- [ ] M7 — Authoritative multiplayer server and match validation
-- [ ] M8 — Ranking, missions, accessibility, performance and abuse testing
-- [ ] M9 — PWA install flow and GitHub Pages publication
-
-## Current status
-
-Initial browser prototype committed in `index.html`. It includes a responsive FABCO landing screen, instructions, keyboard/touch movement, practice rivals, collectible energy, arena obstacles, a shrinking safe zone, local coin/level persistence and match results. This is a solo practice prototype, not online multiplayer. No authentication provider, Supabase project, friend system or multiplayer server is configured yet. These features must not be presented as live until implemented and tested.
+GitHub Actions runs `node scripts/validate-html.cjs` on pushes and pull requests. A passing syntax/ID check does not replace browser, mobile, authentication, security or multiplayer testing.
