@@ -1,59 +1,27 @@
-# FABCO — Last Zone
+# FABCO Carrom Club
 
-FABCO is an original, browser-based **2D survival arena prototype**. It uses an original visual identity and game equipment rather than copying another game's artwork or interface.
+FABCO is an original browser-based carrom game with mandatory account sign-in.
 
 ## Play
+https://srikanthkurva71-sys.github.io/Fabco/
 
-GitHub Pages: https://srikanthkurva71-sys.github.io/Fabco/
+## Game modes
+- Practice vs Robot: local single-player practice against a basic computer opponent.
+- Private online friend room: create an 8-character room code; one friend signs in and joins with that code. The board synchronizes through Supabase Realtime private Broadcast channels.
+- No guest access: the app checks for a Supabase Auth session before opening a game. There is no guest/demo button.
 
-## Current playable prototype
-
-- Entry screen with Google OAuth and email magic-link options (requires a configured Supabase project); local demo mode is available before account setup.
-- Lobby, character collection, armory, inventory, profile and settings.
-- Landscape-oriented 2D arena with keyboard and touch movement.
-- One connected arena with a shrinking safe zone.
-- Ground supply crates with fictional game equipment and utility pickups.
-- Eight abstract equipment classes: Pulse Tagger, Burst Beacon, Scatter Spark, Precision Marker, Arc Launcher, Foam Tool, Shield Disc and First-aid Kit.
-- Practice rivals with simple movement, proximity pressure and hit points; equipped tools can tag rivals.
-- Match timer, health, alive count, match results and local progression.
-- New accounts start **UNRANKED**. No automatic Bronze rank.
-- Character unlocks require coins earned through completed matches.
-- No energy collection, energy meter, real-money purchases or paid add-ons.
+## Sign-in
+- Google OAuth (requires the provider to be configured in the Supabase dashboard).
+- Email magic link (requires Supabase email sign-in to be enabled).
+- The app uses the linked FABCO Supabase project and its public publishable key. No service-role or secret key is in the website.
 
 ## Controls
+Drag the blue striker backwards from the direction you want to shoot, then release. Works with touch or mouse. Pocket your colour coins. Queen covering and scoring are simplified casual rules.
 
-- **W / A / S / D** or **arrow keys** — move.
-- **E** or **PICK UP** — collect a nearby supply crate.
-- **Space** or **USE TOOL** — use the currently equipped fictional game tool.
-- **P** or the pause button — pause.
+## Online setup and security
+See CARROM_SETUP.md and database/carrom_online_rooms.sql. The linked Supabase project already has the carrom_rooms table, room RPCs, RLS and private Realtime policies applied. A project owner/guardian must confirm Auth providers and disable public Realtime channel access as described in the setup guide.
 
-On phones, rotate to landscape for the intended gameplay layout and use the on-screen movement/action buttons.
+## Important limitations
+Online rooms use authenticated private Realtime channels and room membership policies. This is a casual prototype, not a tournament-grade authoritative game server. Clients simulate physics and broadcast settled board snapshots; a modified client could cheat. Reconnect recovery, full tournament rules, moderation/reporting and comprehensive device testing remain unfinished. The robot is a basic local practice opponent.
 
-## Account setup
-
-See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for free-tier Supabase Auth setup, Google/email provider configuration, redirect URLs and security guidance.
-
-Important:
-- Only the Supabase project URL and public anon/publishable key belong in the browser.
-- Never publish a service-role key, secret key, OAuth client secret or database password.
-- Local demo progress is stored in the browser and can be edited or cleared. It is not trusted competitive data.
-
-## Current limitations — not yet production multiplayer
-
-This is a local 2D practice prototype, not a finished 3D battle royale game. It does not yet provide:
-- A trusted authoritative multiplayer game server or real matchmaking.
-- Shared online match state, squads, friends or reconnect handling.
-- Server-validated eliminations, results, coins, inventory or ranks.
-- Cloud-saved player progression, anti-cheat, moderation or reporting.
-- Full animation, audio, complete map art, vehicles or production-ready mobile optimization.
-- Verified production OAuth configuration; Google and email sign-in need the owner's Supabase project setup and end-to-end testing.
-
-Do not advertise ranked online multiplayer or production security until these systems have been implemented and independently tested.
-
-## Free-tier policy
-
-FABCO's development plan is to use free services only. Do not enable billing, paid add-ons, paid infrastructure or subscriptions. Provider free-tier quotas and inactivity rules still apply; free hosting is not unlimited capacity.
-
-## Development checks
-
-GitHub Actions runs `node scripts/validate-html.cjs` on pushes and pull requests. A passing syntax/ID check does not replace browser, mobile, authentication, security or multiplayer testing.
+FABCO is intended to remain free. Supabase and GitHub Pages free tiers have quotas and availability limits; do not enable billing or paid add-ons.
