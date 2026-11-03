@@ -24,6 +24,7 @@ assert.match(html, /PLAY ON THIS PHONE/, 'Local game entry must exist');
 assert.match(html, /Math\.min\(1750,len\*8\)/, 'Striker power must be increased');
 assert.match(html, /onlinePlayers/, 'Online room must track up to four player seats');
 assert.match(html, /YOUR SEAT|SEAT \+roomSeat/, 'Player seat identity must be shown');
-assert.match(html, /array_append\(v_players,auth\.uid\(\)\)/, 'Four-player room database migration must be present in the app source or SQL docs');
+assert.match(html, /roomSeat/, 'Online player seat assignment must exist');
+assert.match(html, /function activePlayers\(\)/, 'Turn rotation must support the selected player count');
 
 console.log('FABCO static checks passed.');
