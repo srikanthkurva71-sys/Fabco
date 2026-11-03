@@ -64,3 +64,7 @@ for insert to authenticated with check (extension='broadcast' and exists (
  select 1 from public.carrom_rooms r where realtime.topic()='carrom:'||r.id::text
  and (r.host_id=(select auth.uid()) or r.guest_id=(select auth.uid()))
 ));
+
+-- Covering indexes for room membership foreign keys.
+create index if not exists carrom_rooms_host_id_idx on public.carrom_rooms(host_id);
+create index if not exists carrom_rooms_guest_id_idx on public.carrom_rooms(guest_id);
