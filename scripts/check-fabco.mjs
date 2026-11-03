@@ -26,5 +26,11 @@ assert.match(html, /onlinePlayers/, 'Online room must track up to four player se
 assert.match(html, /playerIdentity/, 'Player seat identity must be shown');
 assert.match(html, /roomSeat/, 'Online player seat assignment must exist');
 assert.match(html, /function activePlayers\(\)/, 'Turn rotation must support the selected player count');
+assert.match(html, /function saveGame\(\)/, 'Active game state must be persisted on the device');
+assert.match(html, /function restoreSavedGame\(\)/, 'Saved games must be restored after reopening');
+assert.match(html, /addEventListener\('pagehide',saveGame\)/, 'Game state must be saved when the page is closed or suspended');
+assert.match(html, /visibilitychange/, 'Game state must be saved when switching apps');
+assert.match(html, /event==='SIGNED_IN'/, 'Auth refreshes must not force an active game back to the lobby');
+
 
 console.log('FABCO static checks passed.');
