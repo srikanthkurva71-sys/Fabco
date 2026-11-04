@@ -26,7 +26,9 @@ assert.match(html, /onlinePlayers/, 'Online room must track up to four player se
 assert.match(html, /playerIdentity/, 'Player seat identity must be shown');
 assert.match(html, /roomSeat/, 'Online player seat assignment must exist');
 assert.match(html, /function activePlayers\(\)/, 'Turn rotation must support the selected player count');
-assert.match(html, /const captureRadius=b===state\.striker\?13:20/, 'Coin and striker pocket capture sizes must account for their different radii');
+assert.match(html, /const captureRadius=\(b===state\.striker\?34\+STRIKER\*\.72:34\+R\*\.72\)/, 'Pocket capture must account for the pocket mouth and each piece radius');
+assert.match(html, /sinkingPieces\.push/, 'Pocketed pieces must visibly sink into the pocket');
+assert.match(html, /function drawPiece\(/, 'Coins and striker must have shaded depth and contact shadows');
 assert.match(html, /segmentDistance\(oldX,oldY,b\.x,b\.y,px,py\)/, 'Swept-path pocket detection must catch fast pieces crossing a hole between frames');
 assert.match(html, /const leftOpen=b\.y<125\|\|b\.y>675/, 'Corner pocket channels must open through the rails');
 assert.match(html, /if\(b\.x<innerMin&&!leftOpen\)/, 'Rails must rebound outside pocket channels');
